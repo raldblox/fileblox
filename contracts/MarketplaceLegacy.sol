@@ -3,7 +3,6 @@ pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "./NFT.sol";
-import "./MarkToken.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
@@ -16,7 +15,7 @@ contract Marketplace is ReentrancyGuard {
 
     address payable private owner;
 
-    uint256 private listingFee = 0.045 ether;
+    uint256 private listingFee = 0.005 ether;
 
     mapping(uint256 => MarketItem) private marketItemIdToMarketItem;
 
@@ -53,9 +52,11 @@ contract Marketplace is ReentrancyGuard {
     }
 
     /**
-     * @dev Creates a market item listing, requiring a listing fee and transfering the NFT token from
-     * msg.sender to the marketplace contract.
+     * @dev This transfers an already existing NFT token from msg.sender to the marketplace contract.
+     * Any better ideas? I'm thinking of lazy minting.
+     * Also TO DO: Create an enum of File Types so we can display the items by categories
      */
+
     function createMarketItem(
         address nftContractAddress,
         address erc20ContractAddress,
@@ -82,7 +83,7 @@ contract Marketplace is ReentrancyGuard {
             false
         );
 
-        MarkToken(erc20ContractAddress).transferFrom(msg.sender, address(this), listingFee);
+        M20(erc20ContractAddress).transferFrom(msg.sender, address(this), listingFee);
         IERC721(nftContractAddress).transferFrom(msg.sender, address(this), tokenId);
 
         emit MarketItemCreated(
@@ -101,13 +102,14 @@ contract Marketplace is ReentrancyGuard {
     }
 
     /**
-     * @dev Cancel a market item
+     * @dev This function will not work if we implement lazy minting, but it's easy to edit anyway
      */
+
     function cancelMarketItem(address nftContractAddress, uint256 marketItemId) public payable nonReentrant {
         uint256 tokenId = marketItemIdToMarketItem[marketItemId].tokenId;
         require(tokenId > 0, "Market item has to exist");
 
-        require(marketItemIdToMarketItem[marketItemId].seller == msg.sender, "You are not the seller");
+        require(marketItemIdToMarketItem[marketItemId].seller == msg.sender, "You are not the owner");
 
         IERC721(nftContractAddress).transferFrom(address(this), msg.sender, tokenId);
 
@@ -150,12 +152,12 @@ contract Marketplace is ReentrancyGuard {
         marketItemIdToMarketItem[marketItemId].owner = payable(msg.sender);
         marketItemIdToMarketItem[marketItemId].sold = true;
 
-        MarkToken(erc20ContractAddress).transferFrom(msg.sender, marketItemIdToMarketItem[marketItemId].seller, price);
+        M20(erc20ContractAddress).transferFrom(msg.sender, marketItemIdToMarketItem[marketItemId].seller, price);
         IERC721(nftContractAddress).transferFrom(address(this), msg.sender, tokenId);
 
         _tokensSold.increment();
 
-        MarkToken(erc20ContractAddress).transfer(owner, listingFee);
+        M20(erc20ContractAddress).transfer(owner, listingFee);
     }
 
     /**
@@ -263,4 +265,16 @@ contract Marketplace is ReentrancyGuard {
 
         return items;
     }
+
+    /**
+     * @dev TO DO: Transfer ownership of the contract to a multisig wallet
+     */
+    function transferOwnership(address newOwner) public virtual onlyOwner {
+        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        _setOwner(newOwner);
+    }
+
+    function pause() public onlyOwner {_pause();}
+  
+    function unpause() public onlyOwner {_unpause();}
 }
