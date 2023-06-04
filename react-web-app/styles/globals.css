@@ -12,4 +12,8 @@
     color: var(--text);
     background: var(--background);
   }
+
+  section {
+    @apply min-h-screen flex items-center justify-center;
+  }
 }

@@ -28,7 +28,7 @@ export default () => {
 
     return (
         <section>
-            <div className=" mx-auto px-4 py-28 gap-12 text-gray-600 md:px-8 xl:flex">
+            <div className="max-w-screen-xl mx-auto px-4 py-28 gap-12 text-gray-600 md:px-8 xl:flex">
                 <div className="space-y-5 max-w-2xl mx-auto text-center xl:text-left flex flex-col lg:justify-center">
                     <div className="flex flex-wrap items-center justify-center gap-6 xl:justify-start">
                         {
@@ -40,7 +40,7 @@ export default () => {
                             ))
                         }
                     </div>
-                    <h1 className="text-4xl text-gray-800 font-extrabold mx-auto md:text-5xl">
+                    <h1 className="text-4xl text-gray-800 font-bold mx-auto md:text-5xl">
                         Explore curated files on decentralized networks
                     </h1>
                     <p className="max-w-xl mx-auto xl:mx-0">
