@@ -154,7 +154,7 @@ export default () => {
                                             }
                                             {
                                                 item.isDrapdown && drapdownState.idx == idx && drapdownState.isActive ? (
-                                                    <div className="mt-6 backdrop-blur-md inset-x-0 top-20 w-full md:absolute md:border-y md:shadow-md md:mt-0">
+                                                    <div className="mt-6 inset-x-0 top-20 w-full md:absolute md:border-y md:shadow-md md:mt-0">
                                                         <ul className='max-w-screen-xl mx-auto grid items-center gap-6 md:p-8 md:grid-cols-2 lg:grid-cols-3'>
                                                             {item?.navs.map((dropdownItem, idx) => (
                                                                 <li key={idx}>
@@ -186,7 +186,7 @@ export default () => {
                             }
                             <div className='flex-1 items-center justify-end gap-x-6 space-y-3 md:flex md:space-y-0'>
                                 <li>
-                                    <a href="javascript:void(0)" className="block py-3 text-center text-gray-700 hover:text-orange-600 border rounded-lg md:border-none">
+                                    <a href="javascript:void(0)" className="block py-3 text-center text-gray-700 hover:text-orange-600 border rounded-lg border-gray-400 md:border-none">
                                         Documentation
                                     </a>
                                 </li>
