@@ -3,25 +3,25 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --background: #fff;
+  --text: #000;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+@layer components {
+  body {
+    color: var(--text);
+    background: var(--background);
   }
-}
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  nav ul {
+    @apply px-10 py-5 flex gap-10 items-center;
+  }
+
+  nav ul li {
+    @apply text-xl cursor-pointer hover:underline underline-offset-2;
+  }
+
+  nav ul li .logo {
+    @apply font-bold text-4xl;
+  }
 }
