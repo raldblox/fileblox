@@ -12,16 +12,4 @@
     color: var(--text);
     background: var(--background);
   }
-
-  nav ul {
-    @apply px-10 py-5 flex gap-10 items-center;
-  }
-
-  nav ul li {
-    @apply text-xl cursor-pointer hover:underline underline-offset-2;
-  }
-
-  nav ul li .logo {
-    @apply font-bold text-4xl;
-  }
 }
