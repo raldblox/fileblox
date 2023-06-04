@@ -96,7 +96,7 @@ export default () => {
 
     return (
         <>
-            <nav className={`z-20 top-0 sticky bg-gradient-to-b backdrop-blur-sm from-white border-b-2  w-full md:text-sm md:border-none ${state ? "shadow-lg rounded-b-xl md:shadow-none" : ""}`}>
+            <nav className={`z-20 top-0 sticky bg-gradient-to-b backdrop-blur-sm from-white  w-full md:text-sm md:border-b-2 ${state ? "shadow-lg md:shadow-none" : ""}`}>
                 <div className="items-center gap-x-14 px-4 mx-auto md:flex md:px-8 border-b-2 border-black">
                     <div className="flex items-center justify-between py-3 md:py-5 md:block">
                         <a href="javascript:void(0)" className='font-bold text-2xl'>
@@ -121,8 +121,8 @@ export default () => {
                             </button>
                         </div>
                     </div>
-                    <div className={`nav-menu  flex-1 pb-3 mt-8 md:block md:pb-0 md:mt-0 ${state ? 'block' : 'hidden'}`}>
-                        <ul className="items-center space-y-6 md:flex md:space-x-6 md:space-y-0">
+                    <div className={`nav-menu flex-1 pb-3 mt-8 md:block md:pb-0 md:mt-0 ${state ? 'block' : 'hidden'}`}>
+                        <ul className="items-center text-base space-y-6 md:flex md:space-x-6 md:space-y-0">
                             {
                                 navigation.map((item, idx) => {
                                     return (
