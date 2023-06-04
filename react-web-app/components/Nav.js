@@ -154,7 +154,7 @@ export default () => {
                                             }
                                             {
                                                 item.isDrapdown && drapdownState.idx == idx && drapdownState.isActive ? (
-                                                    <div className="mt-6 inset-x-0 top-20 w-full md:absolute md:border-y md:shadow-md md:mt-0">
+                                                    <div className="mt-6 md:backdrop-blur-md inset-x-0 top-20 w-full md:absolute md:border-y md:shadow-md md:mt-0">
                                                         <ul className='max-w-screen-xl mx-auto grid items-center gap-6 md:p-8 md:grid-cols-2 lg:grid-cols-3'>
                                                             {item?.navs.map((dropdownItem, idx) => (
                                                                 <li key={idx}>
