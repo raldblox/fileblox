@@ -28,7 +28,7 @@ async function main () {
   await nft.deployed()
   console.log('Nft deployed to:', nft.address)
 
-  console.log('Mock ApeCoin deployed to:', erc20.address)
+  console.log('Mock ApeCoin address:', erc20.address)
 
   replaceEnvContractAddresses(marketplace.address, nft.address, erc20.address, hre.network.name.toUpperCase())
 }
