@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #fff;
+  --text: #000;
+}
+
+@layer components {
+  body {
+    color: var(--text);
+    background: var(--background);
+  }
+
+  section {
+    @apply min-h-screen flex items-center justify-center;
+  }
+}
