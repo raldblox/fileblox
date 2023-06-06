@@ -23,14 +23,13 @@
     "react-dom": "18.2.0",
     "react-hook-form": "^7.24.1",
     "react-infinite-scroll-component": "^6.1.0",
-    "web3modal": "^1.9.5"
-    "tailwindcss": "3.3.2"
+    "web3modal": "^1.9.5",
+    "tailwindcss": "3.3.2",
     "axios": "^0.24.0",
     "form-data": "^4.0.0",
     "formidable": "^3.2.1",
     "ipfs-http-client": "^55.0.0",
     "multiparty": "^4.2.2",
     "dotenv": "^14.1.1"
-
   }
 }
