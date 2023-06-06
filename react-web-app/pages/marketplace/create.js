@@ -1,23 +1,109 @@
 import { Context } from "@/context"
-import { useContext, useState } from "react"
+import axios from "axios";
+import { NFTStorage } from "nft.storage";
+import { useContext, useEffect, useState } from "react"
 
 export default () => {
 
     const { connectWallet, connectedWallet } = useContext(Context);
+    const [copyState, setCopyState] = useState(false)
 
     const [steps, setStep] = useState({
         stepsItems: ["Store to IPFS", "Tokenize as NFT", "Sell to Marketplace"],
-        currentStep: 2
+        currentStep: 1
     })
 
-    const [file, setFile] = useState(null);
+    const [file, setFile] = useState('');
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
+    const [errorMessage, setErrorMessage] = useState(null);
+    const [uploadedFile, setUploadedFile] = useState();
+    const [fileURL, setFileURL] = useState("");
+    const [txURL, setTxURL] = useState();
+    const [txStatus, setTxStatus] = useState();
 
-    const handleFileChange = (event) => {
-        const selectedFile = event.target.files[0];
-        setFile(selectedFile);
+    // Copy the link
+    const handleCopy = () => {
+        navigator.clipboard.writeText(fileURL).then(function () {
+            setCopyState(true)
+        }, function (err) {
+            console.error('Async: Could not copy text: ', err);
+        });
+    }
+
+    useEffect(() => {
+        if (copyState) {
+            setTimeout(() => setCopyState(false), 3000)
+        }
+    }, [copyState])
+
+    const handleFileUpload = (event) => {
+        setFile(event.target.files[0]);
+        console.log("New File Set");
+    }
+
+    const getIPFSGatewayURL = (ipfsURL) => {
+        let urlArray = ipfsURL.split("/");
+        let ipfsGateWayURL = `https://${urlArray[2]}.ipfs.nftstorage.link/${urlArray[3]}`;
+        return ipfsGateWayURL;
     };
+
+    const mintNFTToken = async (event, uploadedFile) => {
+        event.preventDefault();
+        //1. upload NFT content via NFT.storage
+        const metaData = await uploadNFTContent(file);
+        console.log("metadata:", metaData)
+
+        // //2. Mint a NFT token
+        // const mintNFTTx = await sendTxToChain(metaData);
+
+        // //3. preview the minted nft
+        // previewNFT(metaData, mintNFTTx);
+    }
+
+    const uploadNFTContent = async (inputFile) => {
+        console.log(process.env)
+        const nftStorage = new NFTStorage({ token: process.env.NFTSTORAGE_API_KEY, });
+        try {
+            setTxStatus("Uploading NFT to IPFS & Filecoin via NFT.storage.");
+            const metaData = await nftStorage.store({
+                name: name,
+                description: description,
+                image: inputFile,
+                file: inputFile
+            });
+            setFileURL(getIPFSGatewayURL(metaData.url));
+            console.log(metaData);
+            return metaData;
+
+        } catch (error) {
+            setErrorMessage("Could not save NFT to NFT.Storage - Aborted minting.");
+            console.log(error);
+        }
+    }
+
+    const sendTxToChain = async (metadata) => {
+        try {
+            setTxStatus("Sending mint transaction to  Blockchain.");
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const connectedContract = new ethers.Contract(
+                nftContractAddress,
+                NFT.abi,
+                provider.getSigner()
+            );
+            const mintNFTTx = await connectedContract.mintItem(metadata.url);
+            return mintNFTTx;
+        } catch (error) {
+            setErrorMessage("Failed to send tx to blockchain.");
+            console.log(error);
+        }
+    }
+
+    const previewNFT = (metaData, mintNFTTx) => {
+        setFileURL(getIPFSGatewayURL(metaData.url));
+        setTxURL('https://filecoin.com/tx/' + mintNFTTx.hash);
+        setTxStatus("NFT is minted successfully!");
+    }
 
     const handleNameChange = (event) => {
         setName(event.target.value);
@@ -27,25 +113,9 @@ export default () => {
         setDescription(event.target.value);
     };
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('name', name);
-            formData.append('description', description);
-
-            const response = await axios.post('/api/upload', formData);
-            console.log('File uploaded successfully:', response.data);
-        } catch (error) {
-            console.log('Error uploading file:', error);
-        }
-    };
-
     return (
-        <section className="justify-start px-4 py-20 gap-y-10">
-            <div className="max-w-4xl px-4 mx-auto md:px-0">
+        <section className="justify-start px-4 py-20 gap-y-5">
+            <div className="z-10 max-w-4xl px-4 mx-auto md:px-0">
                 <ul aria-label="Steps" className="items-center font-medium text-gray-600 md:flex">
                     {steps.stepsItems.map((item, idx) => (
                         <li aria-current={steps.currentStep == idx + 1 ? "step" : false} className="flex flex-1 last:flex-none md:items-center">
@@ -84,12 +154,11 @@ export default () => {
                     ))}
                 </ul>
             </div>
-
-            <main className="flex flex-col items-center justify-center w-full sm:px-4">
-                <div className="w-full space-y-6 text-gray-600 sm:max-w-xl">
+            <main className="z-10 flex flex-col items-center justify-center w-full sm:px-4">
+                <div className="grid w-full space-y-6 text-gray-600 gap-y-5 sm:max-w-xl">
                     <div className="text-center ">
                         <div className="mt-5 space-y-2">
-                            <h3 className="text-2xl font-bold text-gray-800 sm:text-3xl">Upload your file</h3>
+                            <h3 className="text-2xl font-bold text-gray-800 sm:text-3xl">Let's store something new!</h3>
                             <p className="">
                                 {connectedWallet ?
                                     <>Wallet Connected : <span className="font-bold text-orange-600 hover:text-orange-500">{connectedWallet.slice(0, 10)}...{connectedWallet.slice(-10)}</span></> :
@@ -98,20 +167,16 @@ export default () => {
                             </p>
                         </div>
                     </div>
-                    <div className="p-4 py-6 shadow bg-orange-50 sm:p-6 sm:rounded-lg">
-                        <form
-                            onSubmit={handleSubmit}
-                            className="space-y-5"
-
-                        >
+                    <div className="p-4 py-6 border border-orange-200 shadow hover:shadow-md bg-orange-50 sm:p-6 sm:rounded-lg">
+                        <form className="space-y-5">
                             <div>
                                 <label htmlFor="file">Select File</label>
                                 <input
                                     type="file"
                                     id="file"
-                                    onChange={handleFileChange}
+                                    onChange={handleFileUpload}
                                     required
-                                    className="w-full px-2 flex items-center justify-center gap-x-3 py-2.5 mt-5 border rounded-lg text-sm font-medium hover:bg-gray-50 duration-150 active:bg-gray-100"
+                                    className="w-full px-2 flex items-center justify-center gap-x-3 py-2.5 mt-5 border rounded-lg text-sm font-medium bg-gray-100 hover:bg-gray-50 duration-150 active:bg-gray-100"
                                 />
                             </div>
                             <div>
@@ -131,7 +196,7 @@ export default () => {
                                     File Description
                                 </label>
                                 <input
-                                    type="email"
+                                    type="text"
                                     value={description}
                                     onChange={handleDescriptionChange}
                                     required
@@ -139,15 +204,31 @@ export default () => {
                                 />
                             </div>
                             <button
-                                type="submit"
+                                onClick={e => mintNFTToken(e, uploadedFile)}
                                 className="w-full px-4 py-2 font-medium text-white duration-150 bg-orange-600 rounded-lg hover:bg-orange-500 active:bg-orange-600"
                             >
                                 Upload to IPFS
                             </button>
                         </form>
                     </div>
+                    <div className="flex items-center justify-between p-2 border rounded-lg">
+                        <p className="overflow-hidden text-sm text-gray-600">{fileURL}</p>
+                        <button className={`relative text-gray-500 ${copyState ? "text-orange-600 pointer-events-none" : ""}`}
+                            onClick={handleCopy}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            {
+                                copyState ? (
+                                    <div className="absolute -top-12 -left-3 px-2 py-1.5 rounded-xl bg-orange-600 font-semibold text-white text-[10px] after:absolute after:inset-x-0 after:mx-auto after:top-[22px] after:w-2 after:h-2 after:bg-orange-600 after:rotate-45">Copied</div>
+                                ) : ""
+                            }
+                        </button>
+                    </div>
                 </div>
             </main>
+            <div className="absolute border-orange-200 border-b top-0 w-full h-[70vh] md:h-[50vh] bg-gradient-to-b from-orange-50 to-orange-100"></div>
         </section>
     )
 }
