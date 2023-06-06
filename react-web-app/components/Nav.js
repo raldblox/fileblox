@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { Context } from '@/context';
+import { useContext, useEffect, useState } from 'react'
 
 const dropdownNavs = [
     {
@@ -75,6 +76,7 @@ const dropdownNavs = [
 ]
 
 export default () => {
+    const { connectWallet, connectedWallet } = useContext(Context);
 
     const [state, setState] = useState(false)
     const [drapdownState, setDrapdownState] = useState({ isActive: false, idx: null })
@@ -97,9 +99,9 @@ export default () => {
     return (
         <>
             <nav className={`z-20 top-0 sticky bg-gradient-to-b backdrop-blur-sm from-white  w-full md:text-sm md:border-b-2 ${state ? "shadow-lg md:shadow-none" : ""}`}>
-                <div className="items-center gap-x-14 px-4 mx-auto md:flex md:px-8 border-b-2 border-black">
+                <div className="items-center px-4 mx-auto border-b-2 border-black gap-x-14 md:flex md:px-8">
                     <div className="flex items-center justify-between py-3 md:py-5 md:block">
-                        <a href="javascript:void(0)" className='font-bold text-2xl'>
+                        <a href="javascript:void(0)" className='text-2xl font-bold'>
                             FileBlox
                         </a>
                         <div className="md:hidden">
@@ -108,7 +110,7 @@ export default () => {
                             >
                                 {
                                     state ? (
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
                                             <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                                         </svg>
                                     ) : (
@@ -122,14 +124,14 @@ export default () => {
                         </div>
                     </div>
                     <div className={`nav-menu flex-1 pb-3 mt-8 md:block md:pb-0 md:mt-0 ${state ? 'block' : 'hidden'}`}>
-                        <ul className="items-center text-base space-y-6 md:flex md:space-x-6 md:space-y-0">
+                        <ul className="items-center space-y-6 text-base md:flex md:space-x-6 md:space-y-0">
                             {
                                 navigation.map((item, idx) => {
                                     return (
                                         <li key={idx}>
                                             {
                                                 item.isDrapdown ? (
-                                                    <button className="w-full flex items-center justify-between gap-1 text-gray-700 hover:text-orange-600"
+                                                    <button className="flex items-center justify-between w-full gap-1 text-gray-700 hover:text-orange-600"
                                                         onClick={() => setDrapdownState({ idx, isActive: !drapdownState.isActive })}
                                                     >
                                                         {item.title}
@@ -154,21 +156,21 @@ export default () => {
                                             }
                                             {
                                                 item.isDrapdown && drapdownState.idx == idx && drapdownState.isActive ? (
-                                                    <div className="mt-6 md:backdrop-blur-md inset-x-0 top-20 w-full md:absolute md:border-y md:shadow-md md:mt-0">
-                                                        <ul className='max-w-screen-xl mx-auto grid items-center gap-6 md:p-8 md:grid-cols-2 lg:grid-cols-3'>
+                                                    <div className="inset-x-0 w-full mt-6 md:backdrop-blur-md top-20 md:absolute md:border-y md:shadow-md md:mt-0">
+                                                        <ul className='grid items-center max-w-screen-xl gap-6 mx-auto md:p-8 md:grid-cols-2 lg:grid-cols-3'>
                                                             {item?.navs.map((dropdownItem, idx) => (
                                                                 <li key={idx}>
-                                                                    <p className="text-orange-600 text-base font-bold">{dropdownItem.label}</p>
+                                                                    <p className="text-base font-bold text-orange-600">{dropdownItem.label}</p>
                                                                     <ul className='mt-5 space-y-6'>
                                                                         {dropdownItem.navs.map((navItem, idx) => (
                                                                             <li key={idx} className="group">
-                                                                                <a href={navItem.path} className='flex gap-3 items-center'>
-                                                                                    <div className='w-12 h-12 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center duration-150 group-hover:bg-orange-600 group-hover:text-white md:w-14 md:h-14'>
+                                                                                <a href={navItem.path} className='flex items-center gap-3'>
+                                                                                    <div className='flex items-center justify-center w-12 h-12 text-orange-600 duration-150 rounded-full bg-orange-50 group-hover:bg-orange-600 group-hover:text-white md:w-14 md:h-14'>
                                                                                         {navItem.icon}
                                                                                     </div>
                                                                                     <div>
-                                                                                        <span className="text-gray-900 duration-200 group-hover:text-orange-600 text-sm font-medium md:text-base">{navItem.title}</span>
-                                                                                        <p className='text-sm text-gray-500 group-hover:text-gray-700 mt-1'>{navItem.desc}</p>
+                                                                                        <span className="text-sm font-medium text-gray-900 duration-200 group-hover:text-orange-600 md:text-base">{navItem.title}</span>
+                                                                                        <p className='mt-1 text-sm text-gray-500 group-hover:text-gray-700'>{navItem.desc}</p>
                                                                                     </div>
                                                                                 </a>
                                                                             </li>
@@ -184,16 +186,17 @@ export default () => {
                                     )
                                 })
                             }
-                            <div className='flex-1 items-center justify-end gap-x-6 space-y-3 md:flex md:space-y-0'>
+                            <div className='items-center justify-end flex-1 space-y-3 gap-x-6 md:flex md:space-y-0'>
                                 <li>
-                                    <a href="javascript:void(0)" className="block py-3 text-center text-gray-700 hover:text-orange-600 border rounded-lg border-gray-400 md:border-none">
+                                    <a href="javascript:void(0)" className="block py-3 text-center text-gray-700 border border-gray-400 rounded-lg hover:text-orange-600 md:border-none">
                                         Documentation
                                     </a>
                                 </li>
-                                <li>
-                                    <a href="javascript:void(0)" className="block py-3 px-4 font-medium text-center text-white bg-orange-600 hover:bg-orange-500 active:bg-orange-700 active:shadow-none rounded-lg shadow md:inline">
-                                        Connect Wallet
-                                    </a>
+                                <li className='block px-4 py-3 font-medium text-center text-white bg-orange-600 rounded-lg shadow hover:bg-orange-500 active:bg-orange-700 active:shadow-none md:inline'>
+                                    {connectedWallet ?
+                                        <>{connectedWallet.slice(0, 10)}...{connectedWallet.slice(-10)}</> :
+                                        <><button onClick={connectWallet}>Connect Wallet</button></>
+                                    }
                                 </li>
                             </div>
                         </ul>
@@ -203,7 +206,7 @@ export default () => {
             {
                 state ? (
                     <div
-                        className="z-10 fixed top-0 w-screen h-screen bg-black/20 backdrop-blur-sm md:hidden"
+                        className="fixed top-0 z-10 w-screen h-screen bg-black/20 backdrop-blur-sm md:hidden"
                         onClick={() => setState(false)}></div>
                 ) : ""
             }
