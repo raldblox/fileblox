@@ -2,6 +2,7 @@ import { Context } from "@/context"
 import axios from "axios";
 import { NFTStorage } from "nft.storage";
 import { useContext, useEffect, useState } from "react"
+console.log(process.env)
 
 export default () => {
 
@@ -10,7 +11,7 @@ export default () => {
 
     const [steps, setStep] = useState({
         stepsItems: ["Store to IPFS", "Tokenize as NFT", "Sell to Marketplace"],
-        currentStep: 1
+        currentStep: 0
     })
 
     const [file, setFile] = useState('');
@@ -18,9 +19,16 @@ export default () => {
     const [description, setDescription] = useState('');
     const [errorMessage, setErrorMessage] = useState(null);
     const [uploadedFile, setUploadedFile] = useState();
-    const [fileURL, setFileURL] = useState("");
+    const [fileURL, setMetadataURL] = useState("");
     const [txURL, setTxURL] = useState();
     const [txStatus, setTxStatus] = useState();
+
+    const handleNextStep = (step) => {
+        setStep(prevState => ({
+            ...prevState,
+            currentStep: step
+        }));
+    };
 
     // Copy the link
     const handleCopy = () => {
@@ -44,15 +52,16 @@ export default () => {
 
     const getIPFSGatewayURL = (ipfsURL) => {
         let urlArray = ipfsURL.split("/");
-        let ipfsGateWayURL = `https://${urlArray[2]}.ipfs.nftstorage.link/${urlArray[3]}`;
+        let ipfsGateWayURL = `https://${urlArray[2]}.ipfs.dweb.link/${urlArray[3]}`;
         return ipfsGateWayURL;
     };
 
     const mintNFTToken = async (event, uploadedFile) => {
         event.preventDefault();
+        handleNextStep(1);
         //1. upload NFT content via NFT.storage
-        const metaData = await uploadNFTContent(file);
-        console.log("metadata:", metaData)
+        const metaData = await uploadToIPFS(file);
+        handleNextStep(2);
 
         // //2. Mint a NFT token
         // const mintNFTTx = await sendTxToChain(metaData);
@@ -61,8 +70,7 @@ export default () => {
         // previewNFT(metaData, mintNFTTx);
     }
 
-    const uploadNFTContent = async (inputFile) => {
-        console.log(process.env)
+    const uploadToIPFS = async (inputFile) => {
         const nftStorage = new NFTStorage({ token: process.env.NFTSTORAGE_API_KEY, });
         try {
             setTxStatus("Uploading NFT to IPFS & Filecoin via NFT.storage.");
@@ -72,7 +80,7 @@ export default () => {
                 image: inputFile,
                 file: inputFile
             });
-            setFileURL(getIPFSGatewayURL(metaData.url));
+            setMetadataURL(getIPFSGatewayURL(metaData.url));
             console.log(metaData);
             return metaData;
 
@@ -84,7 +92,7 @@ export default () => {
 
     const sendTxToChain = async (metadata) => {
         try {
-            setTxStatus("Sending mint transaction to  Blockchain.");
+            setTxStatus("Sending mint transaction to Blockchain.");
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             const connectedContract = new ethers.Contract(
                 nftContractAddress,
@@ -100,7 +108,7 @@ export default () => {
     }
 
     const previewNFT = (metaData, mintNFTTx) => {
-        setFileURL(getIPFSGatewayURL(metaData.url));
+        setMetadataURL(getIPFSGatewayURL(metaData.url));
         setTxURL('https://filecoin.com/tx/' + mintNFTTx.hash);
         setTxStatus("NFT is minted successfully!");
     }
@@ -155,7 +163,7 @@ export default () => {
                 </ul>
             </div>
             <main className="z-10 flex flex-col items-center justify-center w-full sm:px-4">
-                <div className="grid w-full space-y-6 text-gray-600 gap-y-5 sm:max-w-xl">
+                <div className="grid w-full space-y-6 text-gray-600 gap-y-5 sm:max-w-2xl">
                     <div className="text-center ">
                         <div className="mt-5 space-y-2">
                             <h3 className="text-2xl font-bold text-gray-800 sm:text-3xl">Let's store something new!</h3>
@@ -212,6 +220,7 @@ export default () => {
                         </form>
                     </div>
                     <div className="flex items-center justify-between p-2 border rounded-lg">
+                        <label>IPFS Gateway URL</label>
                         <p className="overflow-hidden text-sm text-gray-600">{fileURL}</p>
                         <button className={`relative text-gray-500 ${copyState ? "text-orange-600 pointer-events-none" : ""}`}
                             onClick={handleCopy}
