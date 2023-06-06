@@ -1,6 +1,9 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
-}
+require('dotenv').config();
 
-module.exports = nextConfig
+module.exports = {
+  reactStrictMode: true,
+  env: {
+    NFTSTORAGE_API_KEY: process.env.NFTSTORAGE_API_KEY,
+    SECRET: process.env.SECRET,
+  },
+};
