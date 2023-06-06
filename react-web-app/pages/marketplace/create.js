@@ -61,7 +61,7 @@ export default () => {
         handleNextStep(1);
         //1. upload NFT content via NFT.storage
         const metaData = await uploadToIPFS(file);
-        handleNextStep(2);
+
 
         // //2. Mint a NFT token
         // const mintNFTTx = await sendTxToChain(metaData);
@@ -81,6 +81,8 @@ export default () => {
                 file: inputFile
             });
             setMetadataURL(getIPFSGatewayURL(metaData.url));
+            setTxStatus("Uploaded Successfully!");
+            handleNextStep(2);
             console.log(metaData);
             return metaData;
 
@@ -100,6 +102,7 @@ export default () => {
                 provider.getSigner()
             );
             const mintNFTTx = await connectedContract.mintItem(metadata.url);
+            setTxStatus("Minted successfully on the Blockchain.");
             return mintNFTTx;
         } catch (error) {
             setErrorMessage("Failed to send tx to blockchain.");
@@ -219,9 +222,9 @@ export default () => {
                             </button>
                         </form>
                     </div>
-                    <div className="flex items-center justify-between p-2 border rounded-lg">
-                        <label>IPFS Gateway URL</label>
-                        <p className="overflow-hidden text-sm text-gray-600">{fileURL}</p>
+                    <div className="flex items-center justify-between gap-2 p-2 border rounded-lg">
+                        <label className="flex-[25%]">IPFS Gateway URL</label>
+                        <p className="overflow-hidden text-sm text-gray-600">{fileURL.slice(0, 25)}...{fileURL.slice(-20)}</p>
                         <button className={`relative text-gray-500 ${copyState ? "text-orange-600 pointer-events-none" : ""}`}
                             onClick={handleCopy}
                         >
@@ -234,6 +237,10 @@ export default () => {
                                 ) : ""
                             }
                         </button>
+                    </div>
+                    <div className="flex flex-col items-center justify-center">
+                        <p className="text-green-600">{txStatus}</p>
+                        <p className="text-red-600">{errorMessage}</p>
                     </div>
                 </div>
             </main>
