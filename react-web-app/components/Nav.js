@@ -1,4 +1,5 @@
 import { Context } from '@/context';
+import Link from 'next/link';
 import { useContext, useEffect, useState } from 'react'
 
 const dropdownNavs = [
@@ -101,9 +102,9 @@ export default () => {
             <nav className={`z-20 top-0 sticky bg-gradient-to-b backdrop-blur-sm from-white  w-full md:text-sm md:border-b-2 ${state ? "shadow-lg md:shadow-none" : ""}`}>
                 <div className="items-center px-4 mx-auto border-b-2 border-black gap-x-14 md:flex md:px-8">
                     <div className="flex items-center justify-between py-3 md:py-5 md:block">
-                        <a href="javascript:void(0)" className='text-2xl font-bold'>
+                        <Link href="/" className='text-2xl font-bold'>
                             FileBlox
-                        </a>
+                        </Link>
                         <div className="md:hidden">
                             <button className="text-gray-500 hover:text-gray-800"
                                 onClick={() => setState(!state)}
