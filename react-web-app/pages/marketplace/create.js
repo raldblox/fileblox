@@ -6,7 +6,7 @@ export default () => {
     const { connectWallet, connectedWallet } = useContext(Context);
 
     const [steps, setStep] = useState({
-        stepsItems: ["Store", "Tokenize", "Sell"],
+        stepsItems: ["Store File to IPFS", "Tokenize as NFT", "Sell to Marketplace"],
         currentStep: 2
     })
 
@@ -44,7 +44,7 @@ export default () => {
     };
 
     return (
-        <section className="py-20 gap-y-5">
+        <section className="justify-start px-4 py-20 gap-y-10">
             <div className="max-w-4xl px-4 mx-auto md:px-0">
                 <ul aria-label="Steps" className="items-center font-medium text-gray-600 md:flex">
                     {steps.stepsItems.map((item, idx) => (
@@ -92,8 +92,8 @@ export default () => {
                             <h3 className="text-2xl font-bold text-gray-800 sm:text-3xl">Upload your file</h3>
                             <p className="">
                                 {connectedWallet ?
-                                    <>Wallet Connected | <span className="font-bold text-orange-600 hover:text-orange-500">{connectedWallet}</span></> :
-                                    <>No Wallet Connected | <button onClick={connectWallet} className="font-bold text-orange-600 hover:text-orange-500">Connect Wallet</button></>
+                                    <>Wallet Connected : <span className="font-bold text-orange-600 hover:text-orange-500">{connectedWallet}</span></> :
+                                    <>No Wallet Connected : <button onClick={connectWallet} className="font-bold text-orange-600 hover:text-orange-500">Connect Wallet</button></>
                                 }
                             </p>
                         </div>

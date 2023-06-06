@@ -53,14 +53,14 @@ export default () => {
     ]
 
     return (
-        <section className='relative py-20'>
+        <section className='relative py-20 bg-orange-100'>
             <div className="max-w-screen-xl mx-auto text-gray-600 md:px-8 w-full">
                 <div className='relative space-y-3 px-4 md:px-0'>
-                    <h3 className="text-orange-600 font-semibold">
+                    <h3 className="text-orange-800 font-semibold">
                         Pricing
                     </h3>
-                    <p className='text-gray-800 text-3xl font-semibold sm:text-4xl'>
-                        Pay as you grow
+                    <p className='text-black text-3xl font-semibold sm:text-4xl'>
+                        Pay as you grow!
                     </p>
                     <div className='max-w-xl'>
                         <p>
@@ -73,11 +73,11 @@ export default () => {
                         {
                             features.map((item, idx) => (
                                 <li key={idx} className="flex gap-x-3">
-                                    <div className="flex-none w-12 h-12 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center">
+                                    <div className="flex-none w-12 h-12 rounded-full bg-gray-50 text-orange-500 flex items-center justify-center">
                                         {item.icon}
                                     </div>
                                     <div>
-                                        <h4 className="text-lg text-gray-800 font-medium">
+                                        <h4 className="text-lg text-gray-800 font-bold">
                                             {item.name}
                                         </h4>
                                         <p className="text-gray-600 mt-2 md:text-sm">
@@ -88,7 +88,7 @@ export default () => {
                             ))
                         }
                     </ul>
-                    <div className="flex-1 flex flex-col border-y mt-6 md:max-w-xl md:rounded-xl md:border md:border-x-none md:shadow-lg md:mt-0">
+                    <div className="flex-1 flex flex-col bg-white border-y mt-6 md:max-w-xl md:rounded-xl md:border md:border-x-none md:shadow-lg md:mt-0">
                         <div className="p-4 py-8 border-b md:p-8">
                             <div className="justify-between flex">
                                 <div className="max-w-xs">

@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { useState } from "react"
 
 export default () => {
@@ -28,37 +29,37 @@ export default () => {
 
     return (
         <section>
-            <div className="max-w-screen-xl mx-auto px-4 py-28 gap-12 text-gray-600 md:px-8 xl:flex">
-                <div className="space-y-5 max-w-2xl mx-auto text-center xl:text-left flex flex-col lg:justify-center">
+            <div className="max-w-screen-xl gap-12 px-4 mx-auto text-gray-600 py-28 md:px-8 xl:flex">
+                <div className="flex flex-col max-w-2xl mx-auto space-y-5 text-center xl:text-left lg:justify-center">
                     <div className="flex flex-wrap items-center justify-center gap-6 xl:justify-start">
                         {
                             features.map((item, idx) => (
-                                <div key={idx} className="flex items-center gap-x-2 text-gray-500 text-sm">
+                                <div key={idx} className="flex items-center text-sm text-gray-500 gap-x-2">
                                     {item.icon}
                                     {item.name}
                                 </div>
                             ))
                         }
                     </div>
-                    <h1 className="text-4xl text-gray-800 font-bold mx-auto md:text-5xl">
+                    <h1 className="mx-auto text-4xl font-bold text-gray-800 md:text-5xl">
                         Explore curated files on decentralized networks
                     </h1>
                     <p className="max-w-xl mx-auto xl:mx-0">
                         Sed ut perspiciatis unde omnis iste natus voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae.
                     </p>
-                    <div className="items-center justify-center gap-x-3 space-y-3 sm:flex sm:space-y-0 xl:justify-start">
-                        <a href="javascript:void(0)" className="flex items-center justify-center gap-x-2 py-2 px-4 text-white font-medium bg-orange-600 duration-150 hover:bg-orange-500 active:bg-gray-900 rounded-lg md:inline-flex">
+                    <div className="items-center justify-center space-y-3 gap-x-3 sm:flex sm:space-y-0 xl:justify-start">
+                        <a href="javascript:void(0)" className="flex items-center justify-center px-4 py-2 font-medium text-white duration-150 bg-orange-600 rounded-lg gap-x-2 hover:bg-orange-500 active:bg-gray-900 md:inline-flex">
                             Browse Files
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
                                 <path fillRule="evenodd" d="M2 10a.75.75 0 01.75-.75h12.59l-2.1-1.95a.75.75 0 111.02-1.1l3.5 3.25a.75.75 0 010 1.1l-3.5 3.25a.75.75 0 11-1.02-1.1l2.1-1.95H2.75A.75.75 0 012 10z" clipRule="evenodd" />
                             </svg>
                         </a>
-                        <a href="javascript:void(0)" className="flex items-center justify-center gap-x-2 py-2 px-4 text-gray-700 hover:text-gray-500 font-medium duration-150 active:bg-gray-100 border rounded-lg md:inline-flex">
+                        <Link href="/marketplace/create" className="flex items-center justify-center px-4 py-2 font-medium text-gray-700 duration-150 border rounded-lg gap-x-2 hover:text-gray-500 active:bg-gray-100 md:inline-flex">
                             Upload Files
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
                                 <path fillRule="evenodd" d="M2 10a.75.75 0 01.75-.75h12.59l-2.1-1.95a.75.75 0 111.02-1.1l3.5 3.25a.75.75 0 010 1.1l-3.5 3.25a.75.75 0 11-1.02-1.1l2.1-1.95H2.75A.75.75 0 012 10z" clipRule="evenodd" />
                             </svg>
-                        </a>
+                        </Link>
                     </div>
                 </div>
                 <div className="flex-1 max-w-xl mx-auto mt-14 xl:mt-0">

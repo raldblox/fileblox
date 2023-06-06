@@ -69,7 +69,7 @@ export default () => {
     ]
 
     return (
-        <footer className="text-gray-200 bg-black px-4 py-5 mx-auto md:px-8">
+        <footer className="text-gray-200 bg-black px-4 py-10 mx-auto md:px-8">
             <div className="gap-6 justify-between md:flex">
                 <div className="flex-1">
                     <div className="max-w-xs">
@@ -128,31 +128,31 @@ export default () => {
                     }
                 </div>
             </div>
-            <div className="mt-8 py-6 border-t items-center justify-between sm:flex">
+            <div className="mt-8 py-6 border-t border-orange-500 items-center justify-between sm:flex">
                 <div className="mt-4 sm:mt-0">
                     &copy; 2023 FileBlox. All rights reserved.
                 </div>
                 <div className="mt-6 sm:mt-0">
                     <ul className="flex items-center space-x-4">
-                        <li className="w-10 h-10 border rounded-full flex items-center justify-center hover:text-orange-500">
+                        <li className="w-10 h-10 flex items-center justify-center text-orange-400 hover:text-orange-500">
                             <a href="javascript:void()">
                                 <Facebook />
                             </a>
                         </li>
 
-                        <li className="w-10 h-10 border rounded-full flex items-center justify-center hover:text-orange-500">
+                        <li className="w-10 h-10 flex items-center justify-center text-orange-400 hover:text-orange-500">
                             <a href="javascript:void()">
                                 <Twitter />
                             </a>
                         </li>
 
-                        <li className="w-10 h-10 border rounded-full flex items-center justify-center hover:text-orange-500">
+                        <li className="w-10 h-10 flex items-center justify-center text-orange-400 hover:text-orange-500">
                             <a href="javascript:void()">
                                 <LinkedIn />
                             </a>
                         </li>
 
-                        <li className="w-10 h-10 border rounded-full flex items-center justify-center hover:text-orange-500">
+                        <li className="w-10 h-10 flex items-center justify-center text-orange-400 hover:text-orange-500">
                             <a href="javascript:void()">
                                 <YouTube />
                             </a>
