@@ -6,7 +6,7 @@ export default () => {
     const { connectWallet, connectedWallet } = useContext(Context);
 
     const [steps, setStep] = useState({
-        stepsItems: ["Store File to IPFS", "Tokenize as NFT", "Sell to Marketplace"],
+        stepsItems: ["Store to IPFS", "Tokenize as NFT", "Sell to Marketplace"],
         currentStep: 2
     })
 
@@ -70,7 +70,7 @@ export default () => {
                                     </div>
                                 </div>
                                 <div className="flex items-center h-8 md:h-auto">
-                                    <h3 className={`text-sm ${steps.currentStep == idx + 1 ? "text-orange-600" : ""}`}>
+                                    <h3 className={`text-base whitespace-nowrap ${steps.currentStep == idx + 1 ? "text-orange-600" : ""}`}>
                                         {item}
                                     </h3>
                                 </div>
@@ -92,7 +92,7 @@ export default () => {
                             <h3 className="text-2xl font-bold text-gray-800 sm:text-3xl">Upload your file</h3>
                             <p className="">
                                 {connectedWallet ?
-                                    <>Wallet Connected : <span className="font-bold text-orange-600 hover:text-orange-500">{connectedWallet}</span></> :
+                                    <>Wallet Connected : <span className="font-bold text-orange-600 hover:text-orange-500">{connectedWallet.slice(0, 10)}...{connectedWallet.slice(-10)}</span></> :
                                     <>No Wallet Connected : <button onClick={connectWallet} className="font-bold text-orange-600 hover:text-orange-500">Connect Wallet</button></>
                                 }
                             </p>
