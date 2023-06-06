@@ -87,7 +87,7 @@ export default () => {
             return metaData;
 
         } catch (error) {
-            setErrorMessage("Could not save NFT to NFT.Storage - Aborted minting.");
+            setErrorMessage("Could not save NFT to NFT.Storage.");
             console.log(error);
         }
     }
@@ -133,7 +133,7 @@ export default () => {
                             <div className="flex gap-x-3">
                                 <div className="flex flex-col items-center gap-x-2">
                                     <div className={`w-8 h-8 rounded-full border-2 flex-none flex items-center justify-center ${steps.currentStep > idx + 1 ? "bg-orange-600 border-orange-600" : "" || steps.currentStep == idx + 1 ? "border-orange-600" : ""}`}>
-                                        <span className={` ${steps.currentStep > idx + 1 ? "hidden" : "" || steps.currentStep == idx + 1 ? "text-orange-600" : ""}`}>
+                                        <span className={` ${steps.currentStep > idx + 1 ? "hidden" : "" || steps.currentStep == idx + 1 ? "text-orange-600 animate-pulse font-bold" : ""}`}>
                                             {idx + 1}
                                         </span>
                                         {
@@ -240,7 +240,7 @@ export default () => {
                     </div>
                     <div className="flex flex-col items-center justify-center">
                         <p className="text-green-600">{txStatus}</p>
-                        <p className="text-red-600">{errorMessage}</p>
+                        <p className="text-red-600">{errorMessage && !txStatus && <>{errorMessage}</>}</p>
                     </div>
                 </div>
             </main>
