@@ -2,18 +2,19 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./NFT.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract Marketplace is ReentrancyGuard {
+contract Marketplace is ReentrancyGuard, Ownable {
     using Counters for Counters.Counter;
 
     Counters.Counter private _marketItemIds;
     Counters.Counter private _tokensSold;
     Counters.Counter private _tokensCanceled;
 
-    address payable private owner;
+    address private mod;
 
     uint256 private listingFee = 0.005 ether;
 
@@ -27,6 +28,7 @@ contract Marketplace is ReentrancyGuard {
         address payable seller;
         address payable owner;
         uint256 price;
+        string category;
         bool sold;
         bool canceled;
     }
@@ -39,12 +41,22 @@ contract Marketplace is ReentrancyGuard {
         address seller,
         address owner,
         uint256 price,
+        string category,
         bool sold,
         bool canceled
     );
 
-    constructor() {
+    constructor(address _mod) {
         owner = payable(msg.sender);
+        _mod = mod;
+    }
+
+    /**
+     * @dev Sets a mod who can cancel a listing that violates rules
+     */
+    function setMod(address _mod) public onlyOwner {
+    require(_mod != address(0), "Error: moderator shoudn't be zero address");
+    _mod = mod;
     }
 
     function getListingFee() public view returns (uint256) {
@@ -62,7 +74,8 @@ contract Marketplace is ReentrancyGuard {
         address erc20ContractAddress,
         uint256 feeAmount,
         uint256 tokenId,
-        uint256 price
+        uint256 price,
+        string category
     ) public payable nonReentrant returns (uint256) {
         require(price > 0, "Price must be at least 1 wei");
         require(feeAmount == listingFee, "Price must be equal to listing price");
@@ -79,6 +92,7 @@ contract Marketplace is ReentrancyGuard {
             payable(msg.sender),
             payable(address(0)),
             price,
+            category,
             false,
             false
         );
@@ -94,6 +108,7 @@ contract Marketplace is ReentrancyGuard {
             payable(msg.sender),
             payable(address(0)),
             price,
+            category,
             false,
             false
         );
@@ -109,7 +124,7 @@ contract Marketplace is ReentrancyGuard {
         uint256 tokenId = marketItemIdToMarketItem[marketItemId].tokenId;
         require(tokenId > 0, "Market item has to exist");
 
-        require(marketItemIdToMarketItem[marketItemId].seller == msg.sender, "You are not the owner");
+        require(marketItemIdToMarketItem[marketItemId].seller == msg.sender || mod == msg.sender, "You are not the owner nor the mod");
 
         IERC721(nftContractAddress).transferFrom(address(this), msg.sender, tokenId);
 
@@ -271,10 +286,10 @@ contract Marketplace is ReentrancyGuard {
      */
     function transferOwnership(address newOwner) public virtual onlyOwner {
         require(newOwner != address(0), "Ownable: new owner is the zero address");
-        _setOwner(newOwner);
+        owner = newOwner;
     }
 
-    function pause() public onlyOwner {_pause();}
+    function pause() public onlyOwner {pause();}
   
-    function unpause() public onlyOwner {_unpause();}
+    function unpause() public onlyOwner {unpause();}
 }
