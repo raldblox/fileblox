@@ -10,25 +10,39 @@ contract NFT is ERC721URIStorage {
     Counters.Counter private _tokenIds;
 
     address private marketplaceAddress;
+    address private registryAddress;
+
     mapping(uint256 => address) private _creators;
+    mapping(uint256 => uint256) private _fileIds;
 
-    event TokenMinted(uint256 indexed tokenId, string tokenURI, address marketplaceAddress);
+    event TokenMinted(uint256 indexed tokenId, uint256 fileId, address marketplaceAddress);
 
-    constructor(address _marketplaceAddress) ERC721("Danki", "DANK") {
+    constructor(
+        address _marketplaceAddress,
+        string memory _tokenName,
+        string memory _tokenSymbol
+    ) ERC721(_tokenName, _tokenSymbol) {
         marketplaceAddress = _marketplaceAddress;
+        registryAddress = msg.sender;
     }
 
-    function mintToken(string memory tokenURI) public returns (uint256) {
+    // Modifier to check that the caller is the File Registry Contract
+    modifier onlyRegistry() {
+        require(msg.sender == registryAddress, "Not owner");
+        _;
+    }
+
+    function mintToken(uint256 fileId) public onlyRegistry returns (uint256) {
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
         _mint(msg.sender, newItemId);
         _creators[newItemId] = msg.sender;
-        _setTokenURI(newItemId, tokenURI);
+        _fileIds[newItemId] = fileId;
 
         // Give the marketplace approval to transact NFTs between users
         setApprovalForAll(marketplaceAddress, true);
 
-        emit TokenMinted(newItemId, tokenURI, marketplaceAddress);
+        emit TokenMinted(newItemId, fileId, marketplaceAddress);
         return newItemId;
     }
 
@@ -48,8 +62,12 @@ contract NFT is ERC721URIStorage {
         return ownedTokenIds;
     }
 
-    function getTokenCreatorById(uint256 tokenId) public view returns (address) {
+    function getTokenCreatorById(uint256 tokenId) external view returns (address) {
         return _creators[tokenId];
+    }
+
+    function getFileIdByTokenId(uint256 tokenId) external view returns (uint256) {
+        return _fileIds[tokenId]; 
     }
 
     function getTokensCreatedByMe() public view returns (uint256[] memory) {
