@@ -22,6 +22,7 @@ contract FileRegistry {
     }
 
     mapping(uint256 => File) public files;
+    mapping(uint256 => uint256) private _tokenIds;
 
     event FileRecorded(
         uint256 fileId,
@@ -81,7 +82,8 @@ contract FileRegistry {
         );
 
         if (isToken) {
-            token.mintToken(newFileId);
+            uint256 newTokenId = token.mintToken(newFileId, msg.sender);
+            _tokenIds[newFileId] = newTokenId;
         }
 
         return newFileId;
@@ -89,7 +91,8 @@ contract FileRegistry {
 
     function payForFile(uint256 _fileID) public payable returns (bool) {
         require(msg.value >= files[_fileID].filePrice, "Not paid");
-        token.mintToken(_fileID);
+        uint256 newTokenId = token.mintToken(_fileID, msg.sender);
+        _tokenIds[_fileID] = newTokenId;
         emit FileTokenMinted(_fileID, payable(msg.sender));
         return true;
     }
@@ -124,5 +127,13 @@ contract FileRegistry {
 
     function getTokenAddress() public view returns (address) {
         return address(token);
+    }
+
+    function getTokenIdByFileId(uint256 fileId) public view returns (uint256) {
+        return _tokenIds[fileId];
+    }
+
+    function getFileIdByTokenId(uint256 tokenId) external view returns (uint256) {
+        return token.getFileIdByTokenId(tokenId);
     }
 }
