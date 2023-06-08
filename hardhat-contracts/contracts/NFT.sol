@@ -32,11 +32,11 @@ contract NFT is ERC721URIStorage {
         _;
     }
 
-    function mintToken(uint256 fileId) public onlyRegistry returns (uint256) {
-        _tokenIds.increment();
+    function mintToken(uint256 fileId, address _owner) public onlyRegistry returns (uint256) {
         uint256 newItemId = _tokenIds.current();
-        _mint(msg.sender, newItemId);
-        _creators[newItemId] = msg.sender;
+        _tokenIds.increment();
+        _mint(_owner, newItemId);
+        _creators[newItemId] = _owner;
         _fileIds[newItemId] = fileId;
 
         // Give the marketplace approval to transact NFTs between users
@@ -67,7 +67,7 @@ contract NFT is ERC721URIStorage {
     }
 
     function getFileIdByTokenId(uint256 tokenId) external view returns (uint256) {
-        return _fileIds[tokenId]; 
+        return _fileIds[tokenId];
     }
 
     function getTokensCreatedByMe() public view returns (uint256[] memory) {
