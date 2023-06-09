@@ -16,7 +16,7 @@ npx hardhat verify --network goerli [CONTRACT_ADDRESS]
 ## FILEBLOX CONTRACTS
 
 - Mumbai
-  - FileRegistry: (0x569879087cC01D363065c9262a96fe3e99c66115)[https://mumbai.polygonscan.com/address/0x569879087cC01D363065c9262a96fe3e99c66115#code]
+  - FileRegistry: (0xcD2C996302B59aF58FB03105Ace439595692f17b)[https://mumbai.polygonscan.com/address/0xcD2C996302B59aF58FB03105Ace439595692f17b#code]
   - FileToken: (0x569879087cC01D363065c9262a96fe3e99c66115)[https://mumbai.polygonscan.com/address/0x569879087cC01D363065c9262a96fe3e99c66115#code]
 - Hyperspace
   - FileRegistry:
