@@ -1,5 +1,7 @@
 const path = require('path')
 require('@nomiclabs/hardhat-waffle')
+require("@nomiclabs/hardhat-ethers")
+require("@nomiclabs/hardhat-etherscan")
 require('dotenv').config({ path: path.join(__dirname, '/.env.local') })
 require('hardhat-gas-reporter')
 
@@ -31,6 +33,9 @@ module.exports = {
       url: "https://filecoin-hyperspace.chainup.net/rpc/v1",
       accounts: [process.env.ACCOUNT_PRIVATE_KEY],
     },
+  },
+  etherscan: {
+    apiKey: process.env.API_POLYGONSCAN,
   },
   solidity: {
     version: '0.8.4',
