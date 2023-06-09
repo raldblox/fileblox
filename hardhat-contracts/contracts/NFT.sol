@@ -4,6 +4,8 @@ pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/Base64.sol";
+import "./interface/IFileRegistry.sol";
 
 contract NFT is ERC721URIStorage {
     using Counters for Counters.Counter;
@@ -14,6 +16,7 @@ contract NFT is ERC721URIStorage {
 
     mapping(uint256 => address) private _creators;
     mapping(uint256 => uint256) private _fileIds;
+    mapping(uint256 => string) private _fileTypes;
 
     event TokenMinted(uint256 indexed tokenId, uint256 fileId, address marketplaceAddress);
 
@@ -32,18 +35,63 @@ contract NFT is ERC721URIStorage {
         _;
     }
 
-    function mintToken(uint256 fileId, address _owner) public onlyRegistry returns (uint256) {
+    function mintToken(uint256 _fileId, address _owner, string memory _fileType) public onlyRegistry returns (uint256) {
         uint256 newItemId = _tokenIds.current();
         _tokenIds.increment();
         _mint(_owner, newItemId);
         _creators[newItemId] = _owner;
-        _fileIds[newItemId] = fileId;
+
+        //maps tokenID to fileType
+        _fileTypes[newItemId] = _fileType;
+
+        //maps tokenID to fileId
+        _fileIds[newItemId] = _fileId;
 
         // Give the marketplace approval to transact NFTs between users
         setApprovalForAll(marketplaceAddress, true);
 
-        emit TokenMinted(newItemId, fileId, marketplaceAddress);
+        emit TokenMinted(newItemId, _fileId, marketplaceAddress);
         return newItemId;
+    }
+
+    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+        require(_exists(tokenId), "Error: Nonexistent Token");
+
+        IFileRegistry fileRegistry = IFileRegistry(registryAddress);
+        (
+            string memory filePath,
+            uint256 fileSize,
+            uint256 filePrice,
+            string memory fileType,
+            string memory fileName,
+            string memory fileDescription,
+            address payable uploader
+        ) = fileRegistry.getFileDataByFileID(_fileIds[tokenId]);
+
+        string memory fileAttributes_ = ""; // @note add attributes/traits based on file data
+        string memory fileImage_ = ""; // @note add generateImage() for each fileType
+
+        return
+            string(
+                abi.encodePacked(
+                    "data:application/json;base64,",
+                    Base64.encode(
+                        bytes(
+                            abi.encodePacked(
+                                '{"name":"',
+                                fileName,
+                                '", "description":"',
+                                fileDescription,
+                                '", "image": "',
+                                fileImage_,
+                                '", "attributes": [',
+                                fileAttributes_,
+                                "],}"
+                            )
+                        )
+                    )
+                )
+            );
     }
 
     function getTokensOwnedByMe() public view returns (uint256[] memory) {
