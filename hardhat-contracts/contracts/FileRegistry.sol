@@ -6,14 +6,15 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./NFT.sol";
+import "./interface/IFileRegistry.sol";
 
-contract FileRegistry {
+contract FileRegistry is IFileRegistry {
     using Counters for Counters.Counter;
     Counters.Counter private _fileIds;
 
     NFT public token;
 
-    address private mod;
+    mapping(address => bool) private isMod;
 
     uint256 private platformFee;
 
@@ -32,6 +33,8 @@ contract FileRegistry {
     mapping(uint256 => File) public files;
     mapping(uint256 => uint256) private _tokenIds;
 
+    string[] public fileTypes = ["unknown", "picture", "video", "document", "graphics"];
+
     event FileRecorded(
         uint256 fileId,
         string filePath,
@@ -45,17 +48,16 @@ contract FileRegistry {
 
     event FileTokenMinted(uint256 indexed fileId, address buyerAddress);
 
-    constructor(address _marketplaceAddress, address _mod) {
+    constructor(address _marketplaceAddress) {
         owner = payable(msg.sender);
         platformFee = 0.005 ether;
-        // @dev what does this line do?
-        token = new NFT(_marketplaceAddress, "FileBloxToken", "FBT");
-        _mod = mod;
+        token = new NFT(_marketplaceAddress, "FileBloxToken", "FBT"); // @note deploy NFT.sol and link to FileRegistry
+        isMod[msg.sender] = true;
     }
 
     // Modifier to check that the caller is the moderator
     modifier onlyMod() {
-        require(msg.sender == mod, "Not a mod");
+        require(isMod[msg.sender], "Not a mod");
         _;
     }
 
@@ -70,6 +72,7 @@ contract FileRegistry {
         require(bytes(_filePath).length > 0, "filepath required");
         require(bytes(_fileType).length > 0, "filetype required");
         require(bytes(_fileName).length > 0, "filename required");
+        require(validateFileType(_fileType), "Invalid file type");
         require(msg.sender != address(0), "seller must be an address");
         require(_fileSize > 0, "empty file");
 
@@ -98,36 +101,35 @@ contract FileRegistry {
             _fileDescription,
             payable(msg.sender)
         );
+    }
 
-        ////mints token upon upload if isToken is true
-        //if (isToken) {
-        //    // @audit CRITICAL: you get to mint nearly free from this function. 
-        //    //anyone can just reupload a file hash from the market and mint the token.
-        //    //once they have a reuploaded nft, they can get access to the original file'
-        //    require(msg.value >= platformFee, "Pls pay listing fee");
-        //    owner.transfer(platformFee);
-        //    uint256 newTokenId = token.mintToken(newFileId, msg.sender);
-        //    _tokenIds[newFileId] = newTokenId;
-        //emit FileTokenMinted(newFileId, msg.sender);
+    // @dev Allows the user to pay for a file and mint tokens based on the specified token quantity and fileID
+    function payForFile(uint256 _fileID, uint256 _tokenQuantity) public payable nonReentrant returns (bool) {
+        require(files[_fileID].isBanned != true, "File is banned");
+
+        // Calculate the total price for the specified token quantity
+        uint256 totalPrice = (files[_fileID].filePrice + platformFee) * _tokenQuantity;
+        require(msg.value >= totalPrice, "Not paid");
+
+        // Calculate the payment for each token
+        uint256 paymentPerToken = files[_fileID].filePrice + platformFee;
+
+        // Transfers payment from msg.sender to uploader
+        files[_fileID].uploader.transfer(paymentPerToken * _tokenQuantity);
+
+        // Transfers platformFee from msg.sender to contract owner
+        owner.transfer(platformFee * _tokenQuantity);
+
+        for (uint256 i = 0; i < _tokenQuantity; i++) {
+            // Mints token to msg.sender
+            uint256 newTokenId = token.mintToken(_fileID, msg.sender, files[_fileID].fileType);
+
+            // Maps fileID to tokenId
+            _tokenIds[_fileID] = newTokenId;
+
+            emit FileTokenMinted(_fileID, payable(msg.sender));
         }
 
-    function payForFile(uint256 _fileID) public payable nonReentrant returns (bool) {
-        require(files[_fileID].isBanned != true, "File is banned");
-        require(msg.value >= (files[_fileID].filePrice + platformFee), "Not paid");
-
-        //transfers payment from msg.sender to uploader
-        files[_fileID].uploader.transfer(files[_fileID].filePrice);
-
-        //transfers platformFee from msg.sender to contract owner
-        owner.transfer(platformFee);
-
-        //mints token to msg.sender
-        uint256 newTokenId = token.mintToken(_fileID, msg.sender);
-
-        //i'm not sure what this does
-        _tokenIds[_fileID] = newTokenId;
-
-        emit FileTokenMinted(_fileID, payable(msg.sender));
         return true;
     }
 
@@ -136,7 +138,7 @@ contract FileRegistry {
         uint256 fileId = files[_fileId].fileId;
         require(files[_fileId].fileId > 0, "File has to exist");
         require(files[_fileId].uploader == msg.sender || mod == msg.sender, "You are not the creator nor the mod");
-        
+
         //marks the file as Banned
         fileId.isBanned = true;
     }
@@ -153,7 +155,7 @@ contract FileRegistry {
             string memory fileType,
             string memory fileName,
             string memory fileDescription,
-            address payable 
+            address payable
         )
     {
         File memory file = files[_fileID];
@@ -169,25 +171,54 @@ contract FileRegistry {
         );
     }
 
-    // @dev This seems to be the best way to compare strings in Solidity
+    /**
+     * @dev Compares two strings by hashing and comparing the encoded values.
+     * @param a The first string to compare.
+     * @param b The second string to compare.
+     * @return A boolean indicating whether the two strings are equal or not.
+     */
     function compareStrings(string memory a, string memory b) private pure returns (bool) {
         return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))));
     }
 
+    /**
+     * @dev Validates the file type by comparing it with the allowed file types.
+     * @param _fileType The file type to validate.
+     * @return A boolean indicating whether the file type is valid or not.
+     */
+    function validateFileType(string memory _fileType) private view returns (bool) {
+        for (uint256 i = 0; i < fileTypes.length; i++) {
+            if (compareStrings(_fileType, fileTypes[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // @dev Adds a new file type to the list of valid file types
+    function addFileType(string memory _fileType) public onlyOwner {
+        require(bytes(_fileType).length > 0, "File type cannot be empty");
+        require(!validateFileType(_fileType), "File type already exists");
+
+        fileTypes.push(_fileType);
+
+        emit FileTypeAdded(_fileType);
+    }
+
     // @dev Sets a mod who can cancel a listing that violates rules
-    function setMod(address _mod) public onlyOwner {
-    require(_mod != address(0), "Error: moderator shoudn't be zero address");
-    _mod = mod;
+    function setMod(address _mod, bool _isMod) public onlyOwner {
+        require(_mod != address(0), "Error: moderator shoudn't be zero address");
+        isMod[_mod] = _isMod;
     }
 
     // Sets new platform fee
     function setFee(uint256 _platformFee) public onlyOwner {
-    require(_platformFee != 0 && _platformFee <= 100 ether, "Should be a value greater than 0 and less than 100");
-    _platformFee = platformFee;
+        require(_platformFee != 0 && _platformFee <= 100 ether, "Should be a value greater than 0 and less than 100");
+        _platformFee = platformFee;
     }
 
     function getPlatformFee() public view returns (uint256) {
-    return platformFee;
+        return platformFee;
     }
 
     function getTokenAddress() public view returns (address) {
@@ -210,7 +241,11 @@ contract FileRegistry {
         owner = newOwner;
     }
 
-    function pause() public onlyOwner {pause();}
-  
-    function unpause() public onlyOwner {unpause();}
+    function pause() public onlyOwner {
+        pause();
+    }
+
+    function unpause() public onlyOwner {
+        unpause();
+    }
 }
