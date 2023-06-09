@@ -21,7 +21,16 @@ module.exports = {
     mainnet: {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_ID}`,
       accounts: [process.env.ACCOUNT_PRIVATE_KEY, process.env.ACCOUNT2_PRIVATE_KEY]
-    }
+    },
+    mumbai: {
+      url: process.env.ALCHEMY_MUMBAI,
+      accounts: [process.env.ACCOUNT_PRIVATE_KEY],
+    },
+    hyperspace: {
+      chainId: 3141,
+      url: "https://filecoin-hyperspace.chainup.net/rpc/v1",
+      accounts: [process.env.ACCOUNT_PRIVATE_KEY],
+    },
   },
   solidity: {
     version: '0.8.4',
