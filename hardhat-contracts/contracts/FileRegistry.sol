@@ -32,6 +32,7 @@ contract FileRegistry is IFileRegistry {
 
     mapping(uint256 => File) public files;
     mapping(uint256 => uint256) private _tokenIds;
+    mapping(string => address) private originalUploaders;
 
     string[] public fileTypes = ["unknown", "picture", "video", "document", "graphics"];
 
@@ -76,6 +77,13 @@ contract FileRegistry is IFileRegistry {
         require(msg.sender != address(0), "seller must be an address");
         require(_fileSize > 0, "empty file");
 
+    // @dev require that the msg.sender is the original uploader 
+    //if they're going to call this function using an existing filePath
+        require(
+            originalUploaders[_filePath] == address(0) || originalUploaders[_filePath] == msg.sender,
+            "File already exists with a different uploader"
+        );
+
         uint256 newFileId = _fileIds.current();
         _fileIds.increment();
 
@@ -90,6 +98,11 @@ contract FileRegistry is IFileRegistry {
             payable(msg.sender),
             false
         );
+
+        //updates originalUploaders mapping if file is a new entry
+        if (originalUploaders[_filePath] == address(0)) {
+            originalUploaders[_filePath] = msg.sender;
+        }
 
         emit FileRecorded(
             newFileId,
@@ -248,4 +261,4 @@ contract FileRegistry is IFileRegistry {
     function unpause() public onlyOwner {
         unpause();
     }
-}
+ }
