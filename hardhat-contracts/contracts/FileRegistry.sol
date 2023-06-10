@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.2 <0.9.0;
+pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
@@ -33,6 +33,7 @@ contract FileRegistry is IFileRegistry {
     mapping(uint256 => File) public files;
     mapping(uint256 => uint256) private _tokenIds;
     mapping(string => address) private originalUploaders;
+    mapping(string => uint256[]) private filesByType;
 
     string[] public fileTypes = ["unknown", "picture", "video", "document", "graphics"];
 
@@ -104,6 +105,9 @@ contract FileRegistry is IFileRegistry {
             originalUploaders[_filePath] = msg.sender;
         }
 
+        // Add the file ID to the filesByType mapping
+        filesByType[_fileType].push(newFileId);
+
         emit FileRecorded(
             newFileId,
             _filePath,
@@ -131,9 +135,9 @@ contract FileRegistry is IFileRegistry {
         files[_fileID].uploader.transfer(paymentPerToken * _tokenQuantity);
 
         // Transfers platformFee from msg.sender to contract owner
-        owner.transfer(platformFee * _tokenQuantity);
+        payable(owner()).transfer(platformFee * _tokenQuantity);
 
-        for (uint256 i = 0; i < _tokenQuantity; i++) {
+        for (uint256 i = 0; i < _tokenQuantity; ++i) {
             // Mints token to msg.sender
             uint256 newTokenId = token.mintToken(_fileID, msg.sender, files[_fileID].fileType);
 
@@ -146,14 +150,39 @@ contract FileRegistry is IFileRegistry {
         return true;
     }
 
-    // @dev marks the file as banned. Can't payForFile when banned, will also add !isBanned to require on view functions
-    function delistFile(uint256 _fileId) public payable nonReentrant {
+    // @dev permanently bans a file
+    function delistFile(uint256 _fileId) public nonReentrant {
         uint256 fileId = files[_fileId].fileId;
         require(files[_fileId].fileId > 0, "File has to exist");
         require(files[_fileId].uploader == msg.sender || mod == msg.sender, "You are not the creator nor the mod");
 
         //marks the file as Banned
-        fileId.isBanned = true;
+        files[_fileId].isBanned = true;
+    }
+
+    // @dev Returns an array of available files that can be minted.
+    function getAvailableFiles() public view returns (File[] memory) {
+        uint256[] memory availableFileIds = new uint256[](_fileIds.current());
+        uint256 count = 0;
+
+        for (uint256 i = 0; i < _fileIds.current(); ++i) {
+            if (!files[i + 1].isBanned) {
+                availableFileIds[count] = i + 1;
+                count++;
+            }
+        }
+
+        File[] memory availableFiles = new File[](count);
+        for (uint256 i = 0; i < count; i++) {
+            File storage file = files[availableFileIds[i]];
+            availableFiles[i] = file;
+        }
+
+        return availableFiles;
+    }
+
+    function getAvailableFilesByType(string memory _fileType) public view returns (uint256[] memory) {
+    return filesByType[_fileType];
     }
 
     function getFileDataByFileID(
@@ -200,7 +229,7 @@ contract FileRegistry is IFileRegistry {
      * @return A boolean indicating whether the file type is valid or not.
      */
     function validateFileType(string memory _fileType) private view returns (bool) {
-        for (uint256 i = 0; i < fileTypes.length; i++) {
+        for (uint256 i = 0; i < fileTypes.length; ++i) {
             if (compareStrings(_fileType, fileTypes[i])) {
                 return true;
             }
@@ -227,7 +256,7 @@ contract FileRegistry is IFileRegistry {
     // Sets new platform fee
     function setFee(uint256 _platformFee) public onlyOwner {
         require(_platformFee != 0 && _platformFee <= 100 ether, "Should be a value greater than 0 and less than 100");
-        _platformFee = platformFee;
+        platformFee = _platformFee;
     }
 
     function getPlatformFee() public view returns (uint256) {
