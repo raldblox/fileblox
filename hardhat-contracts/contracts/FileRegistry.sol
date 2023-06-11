@@ -173,7 +173,7 @@ contract FileRegistry is IFileRegistry {
         }
 
         File[] memory availableFiles = new File[](count);
-        for (uint256 i = 0; i < count; i++) {
+        for (uint256 i = 0; i < count; ++i) {
             File storage file = files[availableFileIds[i]];
             availableFiles[i] = file;
         }

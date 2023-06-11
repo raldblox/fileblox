@@ -2,6 +2,7 @@ import { Context } from "@/context"
 import axios from "axios";
 import { NFTStorage } from "nft.storage";
 import { useContext, useEffect, useState } from "react"
+import { AES } from 'crypto-js';
 console.log(process.env)
 
 export default () => {
@@ -10,7 +11,7 @@ export default () => {
     const [copyState, setCopyState] = useState(false)
 
     const [steps, setStep] = useState({
-        stepsItems: ["Store to IPFS", "Tokenize as NFT", "Sell to Marketplace"],
+        stepsItems: ["Store to IPFS", "Encrypt URL", "Store the Encrypted URL", "Tokenize as NFT"],
         currentStep: 0
     })
 
@@ -56,20 +57,6 @@ export default () => {
         return ipfsGateWayURL;
     };
 
-    const mintNFTToken = async (event, uploadedFile) => {
-        event.preventDefault();
-        handleNextStep(1);
-        //1. upload NFT content via NFT.storage
-        const metaData = await uploadToIPFS(file);
-
-
-        // //2. Mint a NFT token
-        // const mintNFTTx = await sendTxToChain(metaData);
-
-        // //3. preview the minted nft
-        // previewNFT(metaData, mintNFTTx);
-    }
-
     const uploadToIPFS = async (inputFile) => {
         const nftStorage = new NFTStorage({ token: process.env.NFTSTORAGE_API_KEY, });
         try {
@@ -90,6 +77,51 @@ export default () => {
             setErrorMessage("Could not save NFT to NFT.Storage.");
             console.log(error);
         }
+    };
+
+    const encryptURL = ((metaData.url), encryptionKey) => {
+        const encryptionKey = process.env.ENCRYPTION_KEY;
+        const encryptedURL = AES.encrypt((metaData.url), encryptionKey).toString();
+        console.log(encryptedURL);
+        handleNextStep(3);
+        return encryptedURL;
+      };
+    }
+
+    const uploadEncryptedtoIPFS = async (encryptedURL) => {
+        const nftStorage = new NFTStorage({ token: process.env.NFTSTORAGE_API_KEY, });
+        try {
+            setTxStatus("Uploading encrypted NFT");
+            const metaData = await nftStorage.store({
+                name: name,
+                description: description,
+                image: inputFile,
+                hash: encryptedURL
+            });
+            setMetadataURL(getIPFSGatewayURL(metaData.url));
+            setTxStatus("Uploaded Successfully!");
+            handleNextStep(3);
+            console.log(metaData);
+            return metaData;
+
+        } catch (error) {
+            setErrorMessage("Could not encrypted NFT to NFT.Storage.");
+            console.log(error);
+        }
+    };
+
+    const mintNFTToken = async (event, uploadedFile) => {
+        event.preventDefault();
+        handleNextStep(1);
+        //1. upload NFT content via NFT.storage
+        const metaData = await uploadToIPFS(file);
+
+
+        // //2. Mint a NFT token
+        // const mintNFTTx = await sendTxToChain(metaData);
+
+        // //3. preview the minted nft
+        // previewNFT(metaData, mintNFTTx);
     }
 
     const sendTxToChain = async (metadata) => {
