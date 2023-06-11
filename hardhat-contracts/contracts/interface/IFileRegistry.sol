@@ -12,7 +12,7 @@ interface IFileRegistry {
             string memory fileType,
             string memory fileName,
             string memory fileDescription,
-            address payable uploader
-            bool isBanned;
+            address payable uploader,
+            bool isBanned
         );
 }
