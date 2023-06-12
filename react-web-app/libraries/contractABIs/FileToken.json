@@ -1,11 +1,6 @@
 [
   {
     "inputs": [
-      {
-        "internalType": "address",
-        "name": "_marketplaceAddress",
-        "type": "address"
-      },
       { "internalType": "string", "name": "_tokenName", "type": "string" },
       { "internalType": "string", "name": "_tokenSymbol", "type": "string" }
     ],
@@ -112,7 +107,7 @@
       {
         "indexed": false,
         "internalType": "address",
-        "name": "marketplaceAddress",
+        "name": "registryAddress",
         "type": "address"
       }
     ],
@@ -220,8 +215,9 @@
   },
   {
     "inputs": [
-      { "internalType": "uint256", "name": "fileId", "type": "uint256" },
-      { "internalType": "address", "name": "_owner", "type": "address" }
+      { "internalType": "uint256", "name": "_fileId", "type": "uint256" },
+      { "internalType": "address", "name": "_owner", "type": "address" },
+      { "internalType": "string", "name": "_fileType", "type": "string" }
     ],
     "name": "mintToken",
     "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],

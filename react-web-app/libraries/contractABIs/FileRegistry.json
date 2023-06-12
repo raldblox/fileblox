@@ -1,15 +1,5 @@
 [
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_marketplaceAddress",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
+  { "inputs": [], "stateMutability": "nonpayable", "type": "constructor" },
   {
     "anonymous": false,
     "inputs": [
@@ -85,6 +75,129 @@
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "fileType",
+        "type": "string"
+      }
+    ],
+    "name": "FileTypeAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "fileId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "filePath",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "fileSize",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "filePrice",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "fileType",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "fileName",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "fileDescription",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "address payable",
+        "name": "uploader",
+        "type": "address"
+      }
+    ],
+    "name": "FileUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "_fileType", "type": "string" }
+    ],
+    "name": "addFileType",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "_fileId", "type": "uint256" },
+      { "internalType": "bool", "name": "_isBanned", "type": "bool" }
+    ],
+    "name": "banFile",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "_fileId", "type": "uint256" },
+      { "internalType": "bool", "name": "_isDelisted", "type": "bool" }
+    ],
+    "name": "delistMyFile",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "name": "fileTypes",
+    "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "name": "files",
     "outputs": [
@@ -99,7 +212,57 @@
         "internalType": "address payable",
         "name": "uploader",
         "type": "address"
+      },
+      { "internalType": "bool", "name": "isDelistedByOwner", "type": "bool" },
+      { "internalType": "bool", "name": "isBannedByMod", "type": "bool" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getAvailableFiles",
+    "outputs": [
+      {
+        "components": [
+          { "internalType": "uint256", "name": "fileId", "type": "uint256" },
+          { "internalType": "string", "name": "filePath", "type": "string" },
+          { "internalType": "uint256", "name": "fileSize", "type": "uint256" },
+          { "internalType": "uint256", "name": "filePrice", "type": "uint256" },
+          { "internalType": "string", "name": "fileType", "type": "string" },
+          { "internalType": "string", "name": "fileName", "type": "string" },
+          {
+            "internalType": "string",
+            "name": "fileDescription",
+            "type": "string"
+          },
+          {
+            "internalType": "address payable",
+            "name": "uploader",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "isDelistedByOwner",
+            "type": "bool"
+          },
+          { "internalType": "bool", "name": "isBannedByMod", "type": "bool" }
+        ],
+        "internalType": "struct FileRegistry.File[]",
+        "name": "",
+        "type": "tuple[]"
       }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "_fileType", "type": "string" }
+    ],
+    "name": "getAvailableFilesByType",
+    "outputs": [
+      { "internalType": "uint256[]", "name": "", "type": "uint256[]" }
     ],
     "stateMutability": "view",
     "type": "function"
@@ -120,7 +283,9 @@
         "internalType": "address payable",
         "name": "uploader",
         "type": "address"
-      }
+      },
+      { "internalType": "bool", "name": "isBannedByMod", "type": "bool" },
+      { "internalType": "bool", "name": "isDelistedByOwner", "type": "bool" }
     ],
     "stateMutability": "view",
     "type": "function"
@@ -130,6 +295,22 @@
       { "internalType": "uint256", "name": "tokenId", "type": "uint256" }
     ],
     "name": "getFileIdByTokenId",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "_fileId", "type": "uint256" }
+    ],
+    "name": "getFilePathHistory",
+    "outputs": [{ "internalType": "string[]", "name": "", "type": "string[]" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getPlatformFee",
     "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "stateMutability": "view",
     "type": "function"
@@ -151,8 +332,23 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "pause",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [
-      { "internalType": "uint256", "name": "_fileID", "type": "uint256" }
+      { "internalType": "uint256", "name": "_fileID", "type": "uint256" },
+      { "internalType": "uint256", "name": "_tokenQuantity", "type": "uint256" }
     ],
     "name": "payForFile",
     "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
@@ -166,15 +362,36 @@
       { "internalType": "uint256", "name": "_fileSize", "type": "uint256" },
       { "internalType": "uint256", "name": "_filePrice", "type": "uint256" },
       { "internalType": "string", "name": "_fileType", "type": "string" },
-      {
-        "internalType": "string",
-        "name": "_fileDescription",
-        "type": "string"
-      },
-      { "internalType": "bool", "name": "isToken", "type": "bool" }
+      { "internalType": "string", "name": "_fileDescription", "type": "string" }
     ],
     "name": "recordFile",
     "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "_platformFee", "type": "uint256" }
+    ],
+    "name": "setFee",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_mod", "type": "address" },
+      { "internalType": "bool", "name": "_isMod", "type": "bool" }
+    ],
+    "name": "setMod",
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -185,6 +402,37 @@
       { "internalType": "contract NFT", "name": "", "type": "address" }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "newOwner", "type": "address" }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "unpause",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "_fileId", "type": "uint256" },
+      { "internalType": "string", "name": "_filePath", "type": "string" },
+      { "internalType": "string", "name": "_fileName", "type": "string" },
+      { "internalType": "uint256", "name": "_fileSize", "type": "uint256" },
+      { "internalType": "uint256", "name": "_filePrice", "type": "uint256" },
+      { "internalType": "string", "name": "_fileType", "type": "string" },
+      { "internalType": "string", "name": "_fileDescription", "type": "string" }
+    ],
+    "name": "updateFile",
+    "outputs": [],
+    "stateMutability": "payable",
     "type": "function"
   }
 ]
