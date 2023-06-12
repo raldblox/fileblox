@@ -4,7 +4,7 @@ export const hyperspace = {
 };
 
 export const mumbai = {
-    Registry: "0xcD2C996302B59aF58FB03105Ace439595692f17b",
-    Token: "0x569879087cC01D363065c9262a96fe3e99c66115",
+    Registry: "0x487D565C9867b0c76656a21E1a06ABA113265E28",
+    Token: "0x93a992989A95165EC4a5165707F5719538e9D20c",
 };
 
