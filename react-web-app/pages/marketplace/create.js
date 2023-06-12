@@ -3,7 +3,6 @@ import axios from "axios";
 import { NFTStorage } from "nft.storage";
 import { useContext, useEffect, useState } from "react"
 import { AES } from 'crypto-js';
-console.log(process.env)
 
 export default () => {
 
@@ -11,18 +10,26 @@ export default () => {
     const [copyState, setCopyState] = useState(false)
 
     const [steps, setStep] = useState({
-        stepsItems: ["Store to IPFS", "Encrypt URL", "Store the Encrypted URL", "Tokenize as NFT"],
+        stepsItems: ["Store to IPFS", "Encrypt Hash", "Record on Chain", "Ready to Tokenize"],
         currentStep: 0
     })
 
     const [file, setFile] = useState('');
-    const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
+    const [category, setCategory] = useState('');
     const [errorMessage, setErrorMessage] = useState(null);
     const [uploadedFile, setUploadedFile] = useState();
     const [fileURL, setMetadataURL] = useState("");
     const [txURL, setTxURL] = useState();
     const [txStatus, setTxStatus] = useState();
+
+    const [fileData, setFileData] = useState({
+        filePath: "",
+        fileCover: "",
+        fileName: "",
+        fileSize: "",
+        filePrice: "",
+        fileDescription: ""
+    });
 
     const handleNextStep = (step) => {
         setStep(prevState => ({
@@ -31,25 +38,66 @@ export default () => {
         }));
     };
 
-    // Copy the link
-    const handleCopy = () => {
-        navigator.clipboard.writeText(fileURL).then(function () {
-            setCopyState(true)
-        }, function (err) {
-            console.error('Async: Could not copy text: ', err);
-        });
-    }
-
     useEffect(() => {
         if (copyState) {
             setTimeout(() => setCopyState(false), 3000)
         }
     }, [copyState])
 
-    const handleFileUpload = (event) => {
-        setFile(event.target.files[0]);
-        console.log("New File Set");
+    const handleFile = (event) => {
+        const file = event.target.files[0]; // Get the selected file
+        const fileName = file.name; // Get the original file name
+        const fileExtension = fileName.split(".").pop(); // Get the file extension
+        const renamedFile = new File([file], `file.${fileExtension}`); // Create a new File object with the renamed file
+
+        // You can now use the renamedFile object for further processing or upload
+        console.log("File Selected:", renamedFile);
+        setFileData((prevState) => ({
+            ...prevState,
+            filePath: renamedFile,
+            fileSize: renamedFile.size,
+        }));
+        setTxStatus(`File Size: ${renamedFile.size} bytes`);
     }
+
+    const handleCover = (event) => {
+        const file = event.target.files[0]; // Get the selected file
+        const fileName = file.name; // Get the original file name
+        const fileExtension = fileName.split(".").pop(); // Get the file extension
+        const renamedFile = new File([file], `cover.${fileExtension}`); // Create a new File object with the renamed file
+        console.log("Cover Image:", renamedFile);
+        setFileData((prevState) => ({
+            ...prevState,
+            fileCover: renamedFile,
+        }));
+    }
+
+    const handleNameChange = (event) => {
+        const newName = event.target.value;
+
+        setFileData((prevFileData) => ({
+            ...prevFileData,
+            fileName: newName,
+        }));
+    };
+
+    const handleDescriptionChange = (event) => {
+        const newDescription = event.target.value;
+
+        setFileData((prevFileData) => ({
+            ...prevFileData,
+            fileDescription: newDescription,
+        }));
+    };
+
+    const handlePriceChange = (event) => {
+        const newPrice = event.target.value;
+
+        setFileData((prevFileData) => ({
+            ...prevFileData,
+            filePrice: newPrice,
+        }));
+    };
 
     const getIPFSGatewayURL = (ipfsURL) => {
         let urlArray = ipfsURL.split("/");
@@ -57,19 +105,21 @@ export default () => {
         return ipfsGateWayURL;
     };
 
-    const uploadToIPFS = async (inputFile) => {
+    const uploadToIPFS = async () => {
         const nftStorage = new NFTStorage({ token: process.env.NFTSTORAGE_API_KEY, });
         try {
+            handleNextStep(1);
             setTxStatus("Uploading NFT to IPFS & Filecoin via NFT.storage.");
+            console.log(fileData);
             const metaData = await nftStorage.store({
-                name: name,
-                description: description,
-                image: inputFile,
-                file: inputFile
+                name: fileData.fileName,
+                description: fileData.fileDescription,
+                size: fileData.fileSize,
+                image: fileData.filePath,
+                file: fileData.filePath
             });
             setMetadataURL(getIPFSGatewayURL(metaData.url));
             setTxStatus("Uploaded Successfully!");
-            handleNextStep(2);
             console.log(metaData);
             return metaData;
 
@@ -79,53 +129,19 @@ export default () => {
         }
     };
 
-    const encryptURL = ((metaData.url), encryptionKey) => {
+    const encryptURL = async (url) => {
+        handleNextStep(2);
         const encryptionKey = process.env.ENCRYPTION_KEY;
-        const encryptedURL = AES.encrypt((metaData.url), encryptionKey).toString();
+        const encryptedURL = AES.encrypt((url), encryptionKey).toString();
         console.log(encryptedURL);
-        handleNextStep(3);
         return encryptedURL;
-      };
-    }
-
-    const uploadEncryptedtoIPFS = async (encryptedURL) => {
-        const nftStorage = new NFTStorage({ token: process.env.NFTSTORAGE_API_KEY, });
-        try {
-            setTxStatus("Uploading encrypted NFT");
-            const metaData = await nftStorage.store({
-                name: name,
-                description: description,
-                image: inputFile,
-                hash: encryptedURL
-            });
-            setMetadataURL(getIPFSGatewayURL(metaData.url));
-            setTxStatus("Uploaded Successfully!");
-            handleNextStep(3);
-            console.log(metaData);
-            return metaData;
-
-        } catch (error) {
-            setErrorMessage("Could not encrypted NFT to NFT.Storage.");
-            console.log(error);
-        }
     };
 
-    const mintNFTToken = async (event, uploadedFile) => {
-        event.preventDefault();
-        handleNextStep(1);
-        //1. upload NFT content via NFT.storage
-        const metaData = await uploadToIPFS(file);
+    const sendFileDataToChain = async (encryptedURL) => {
+        const { fileName, fileSize, filePrice, fileType, fileDescription } = fileData;
 
-
-        // //2. Mint a NFT token
-        // const mintNFTTx = await sendTxToChain(metaData);
-
-        // //3. preview the minted nft
-        // previewNFT(metaData, mintNFTTx);
-    }
-
-    const sendTxToChain = async (metadata) => {
         try {
+            handleNextStep(3);
             setTxStatus("Sending mint transaction to Blockchain.");
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             const connectedContract = new ethers.Contract(
@@ -133,28 +149,34 @@ export default () => {
                 NFT.abi,
                 provider.getSigner()
             );
-            const mintNFTTx = await connectedContract.mintItem(metadata.url);
+            const tx = await connectedContract.recordFile(encryptedURL, fileName, fileSize, filePrice, fileType, fileDescription);
+            console.log(encryptedURL);
             setTxStatus("Minted successfully on the Blockchain.");
-            return mintNFTTx;
+            return tx;
         } catch (error) {
             setErrorMessage("Failed to send tx to blockchain.");
             console.log(error);
         }
     }
 
-    const previewNFT = (metaData, mintNFTTx) => {
-        setMetadataURL(getIPFSGatewayURL(metaData.url));
-        setTxURL('https://filecoin.com/tx/' + mintNFTTx.hash);
-        setTxStatus("NFT is minted successfully!");
+    const processFile = async (event) => {
+        event.preventDefault();
+        //1. upload file via NFT.storage
+        const metaData = await uploadToIPFS();
+        // 2. Encrypt IPFS Hash -- CID
+        const encryptedURL = await encryptURL(metaData.url); // Encrypt CID
+        // 3. Record to Blockchain
+        const fileID = await sendFileDataToChain(encryptedURL);
     }
 
-    const handleNameChange = (event) => {
-        setName(event.target.value);
-    };
-
-    const handleDescriptionChange = (event) => {
-        setDescription(event.target.value);
-    };
+    // Copy the link
+    const handleCopy = () => {
+        navigator.clipboard.writeText(fileURL).then(function () {
+            setCopyState(true)
+        }, function (err) {
+            console.error('Async: Could not copy text: ', err);
+        });
+    }
 
     return (
         <section className="justify-start px-4 py-20 gap-y-5">
@@ -217,9 +239,19 @@ export default () => {
                                 <input
                                     type="file"
                                     id="file"
-                                    onChange={handleFileUpload}
+                                    onChange={handleFile}
                                     required
-                                    className="w-full px-2 flex items-center justify-center gap-x-3 py-2.5 mt-5 border rounded-lg text-sm font-medium bg-gray-100 hover:bg-gray-50 duration-150 active:bg-gray-100"
+                                    className="w-full px-2 flex items-center justify-center gap-x-3 py-2.5 mt-5 border rounded-lg text-sm font-medium bg-white hover:bg-gray-50 duration-150 active:bg-gray-100"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="file">Select Cover</label>
+                                <input
+                                    type="file"
+                                    id="file"
+                                    onChange={handleCover}
+                                    required
+                                    className="w-full px-2 flex items-center justify-center gap-x-3 py-2.5 mt-5 border rounded-lg text-sm font-medium bg-white hover:bg-gray-50 duration-150 active:bg-gray-100"
                                 />
                             </div>
                             <div>
@@ -228,10 +260,10 @@ export default () => {
                                 </label>
                                 <input
                                     type="text"
-                                    value={name}
+                                    value={fileData.fileName}
                                     onChange={handleNameChange}
                                     required
-                                    className="w-full px-3 py-2 mt-2 text-gray-500 bg-transparent border rounded-lg shadow-sm outline-none focus:border-orange-600"
+                                    className="w-full px-3 py-2 mt-2 text-gray-500 bg-white border rounded-lg shadow-sm outline-none hover:bg-gray-50 focus:border-orange-600"
                                 />
                             </div>
                             <div>
@@ -240,17 +272,46 @@ export default () => {
                                 </label>
                                 <input
                                     type="text"
-                                    value={description}
+                                    value={fileData.fileDescription}
                                     onChange={handleDescriptionChange}
                                     required
-                                    className="w-full px-3 py-2 mt-2 text-gray-500 bg-transparent border rounded-lg shadow-sm outline-none focus:border-orange-600"
+                                    className="w-full px-3 py-2 mt-2 text-gray-500 bg-white border rounded-lg shadow-sm outline-none hover:bg-gray-50 focus:border-orange-600"
                                 />
                             </div>
+                            <div>
+                                <label htmlFor="description" className="font-medium">
+                                    File Price
+                                </label>
+                                <input
+                                    type="text"
+                                    value={fileData.filePrice}
+                                    onChange={handlePriceChange}
+                                    required
+                                    className="w-full px-3 py-2 mt-2 text-gray-500 bg-white border rounded-lg shadow-sm outline-none hover:bg-gray-50 focus:border-orange-600"
+                                />
+                            </div>
+                            <div>
+                                <label className="">
+                                    File Category
+                                </label>
+                                <select
+                                    value={fileData.fileCategory}
+                                    onChange={(e) => setCategory(e.target.value)}
+                                    className="w-full px-3 py-2 mt-2 text-gray-500 bg-white border rounded-lg shadow-sm outline-none hover:bg-gray-50 focus:border-orange-600"
+                                >
+                                    <option value="">--Select File Category--</option>
+                                    <option value="image">Image</option>
+                                    <option value="music">Music</option>
+                                    <option value="video">Video</option>
+                                    <option value="document">Document</option>
+                                    <option value="unknown">I don't know</option>
+                                </select>
+                            </div>
                             <button
-                                onClick={e => mintNFTToken(e, uploadedFile)}
+                                onClick={e => processFile(e, uploadedFile)}
                                 className="w-full px-4 py-2 font-medium text-white duration-150 bg-orange-600 rounded-lg hover:bg-orange-500 active:bg-orange-600"
                             >
-                                Upload to IPFS
+                                Upload
                             </button>
                         </form>
                     </div>
