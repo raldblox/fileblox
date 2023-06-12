@@ -14,8 +14,14 @@
     "@mui/icons-material": "^5.11.16",
     "@mui/material": "^5.13.3",
     "autoprefixer": "10.4.14",
+    "axios": "^0.24.0",
     "crypto-js": "^4.0.0",
-    "ethers": "^6.4.1",
+    "dotenv": "^14.1.1",
+    "ethers": "^6.5.1",
+    "form-data": "^4.0.0",
+    "formidable": "^3.2.1",
+    "ipfs-http-client": "^55.0.0",
+    "multiparty": "^4.2.2",
     "next": "13.4.4",
     "next-connect": "^0.11.0",
     "nft.storage": "^7.1.0",
@@ -24,13 +30,7 @@
     "react-dom": "18.2.0",
     "react-hook-form": "^7.24.1",
     "react-infinite-scroll-component": "^6.1.0",
-    "web3modal": "^1.9.5",
     "tailwindcss": "3.3.2",
-    "axios": "^0.24.0",
-    "form-data": "^4.0.0",
-    "formidable": "^3.2.1",
-    "ipfs-http-client": "^55.0.0",
-    "multiparty": "^4.2.2",
-    "dotenv": "^14.1.1"
+    "web3modal": "^1.9.5"
   }
 }
