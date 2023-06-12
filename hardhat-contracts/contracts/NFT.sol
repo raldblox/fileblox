@@ -19,10 +19,7 @@ contract NFT is ERC721URIStorage {
 
     event TokenMinted(uint256 indexed tokenId, uint256 fileId, address registryAddress);
 
-    constructor(
-        string memory _tokenName,
-        string memory _tokenSymbol
-    ) ERC721(_tokenName, _tokenSymbol) {
+    constructor(string memory _tokenName, string memory _tokenSymbol) ERC721(_tokenName, _tokenSymbol) {
         registryAddress = msg.sender;
     }
 
@@ -62,7 +59,9 @@ contract NFT is ERC721URIStorage {
             string memory fileType,
             string memory fileName,
             string memory fileDescription,
-            address payable uploader
+            address payable uploader,
+            bool isBannedByMod,
+            bool isDelistedByOwner
         ) = fileRegistry.getFileDataByFileID(_fileIds[tokenId]);
 
         string memory fileAttributes_ = ""; // @note add attributes/traits based on file data

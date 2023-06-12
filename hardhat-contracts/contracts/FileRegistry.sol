@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./NFT.sol";
 import "./interface/IFileRegistry.sol";
 
-contract FileRegistry is IFileRegistry {
+contract FileRegistry is IFileRegistry, ReentrancyGuard, Ownable {
     using Counters for Counters.Counter;
     Counters.Counter private _fileIds;
 
@@ -62,11 +62,11 @@ contract FileRegistry is IFileRegistry {
     );
 
     event FileTokenMinted(uint256 indexed fileId, address buyerAddress);
+    event FileTypeAdded(string fileType);
 
-    constructor(address _marketplaceAddress) {
-        owner = payable(msg.sender);
+    constructor() {
         platformFee = 0.005 ether;
-        token = new NFT(_marketplaceAddress, "FileBloxToken", "FBT"); // @note deploy NFT.sol and link to FileRegistry
+        token = new NFT("FileBloxToken", "FBT"); // @note deploy NFT.sol and link to FileRegistry
         isMod[msg.sender] = true;
     }
 
@@ -107,6 +107,7 @@ contract FileRegistry is IFileRegistry {
             _fileName,
             _fileDescription,
             payable(msg.sender),
+            false,
             false
         );
 
@@ -150,17 +151,15 @@ contract FileRegistry is IFileRegistry {
         // @dev require that filePath exist
         require(originalUploaders[_filePath] != address(0), "File path does not exist");
 
-        files[_fileId] = File(
-            newFileId,
-            _filePath,
-            _fileSize,
-            _filePrice,
-            _fileType,
-            _fileName,
-            _fileDescription,
-            payable(msg.sender),
-            false
-        );
+        File storage file = files[_fileId];
+
+        // Update the file information
+        file.filePath = _filePath;
+        file.fileName = _fileName;
+        file.fileSize = _fileSize;
+        file.filePrice = _filePrice;
+        file.fileType = _fileType;
+        file.fileDescription = _fileDescription;
 
         // record originalUploaders of filePath
         originalUploaders[_filePath] = msg.sender;
@@ -185,7 +184,7 @@ contract FileRegistry is IFileRegistry {
 
     // @dev Allows the user to pay for a file and mint tokens based on the specified token quantity and fileID
     function payForFile(uint256 _fileID, uint256 _tokenQuantity) public payable nonReentrant returns (bool) {
-        require(files[_fileId].uploader != address(0), "File does not exist");
+        require(files[_fileID].uploader != address(0), "File does not exist");
         require(files[_fileID].isBannedByMod != true, "File is banned by moderators");
         require(files[_fileID].isDelistedByOwner != true, "File is delisted by uploader");
 
@@ -238,7 +237,7 @@ contract FileRegistry is IFileRegistry {
         uint256 count = 0;
 
         for (uint256 i = 0; i < _fileIds.current(); ++i) {
-            if (!files[i + 1].isBanned) {
+            if (!files[i + 1].isBannedByMod) {
                 availableFileIds[count] = i + 1;
                 count++;
             }
@@ -257,7 +256,7 @@ contract FileRegistry is IFileRegistry {
         return filesByType[_fileType];
     }
 
-    function getFilePathHistory(string memory _fileId) public view returns (string[] memory) {
+    function getFilePathHistory(uint256 _fileId) public view returns (string[] memory) {
         return filePathHistory[_fileId];
     }
 
@@ -266,6 +265,7 @@ contract FileRegistry is IFileRegistry {
     )
         public
         view
+        override
         returns (
             string memory filePath,
             uint256 fileSize,
@@ -273,7 +273,9 @@ contract FileRegistry is IFileRegistry {
             string memory fileType,
             string memory fileName,
             string memory fileDescription,
-            address payable
+            address payable uploader,
+            bool isBannedByMod,
+            bool isDelistedByOwner
         )
     {
         File memory file = files[_fileID];
@@ -285,7 +287,9 @@ contract FileRegistry is IFileRegistry {
             file.fileType,
             file.fileName,
             file.fileDescription,
-            file.uploader
+            file.uploader,
+            file.isBannedByMod,
+            file.isDelistedByOwner
         );
     }
 
@@ -349,14 +353,6 @@ contract FileRegistry is IFileRegistry {
 
     function getFileIdByTokenId(uint256 tokenId) external view returns (uint256) {
         return token.getFileIdByTokenId(tokenId);
-    }
-
-    /**
-     * @dev TO DO: Transfer ownership of the contract to a multisig wallet
-     */
-    function transferOwnership(address newOwner) public virtual onlyOwner {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
-        owner = newOwner;
     }
 
     function pause() public onlyOwner {

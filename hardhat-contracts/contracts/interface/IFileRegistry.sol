@@ -2,7 +2,9 @@
 pragma solidity ^0.8.4;
 
 interface IFileRegistry {
-    function getFileDataByFileID(uint256 _fileID)
+    function getFileDataByFileID(
+        uint256 _fileID
+    )
         external
         view
         returns (
@@ -13,6 +15,7 @@ interface IFileRegistry {
             string memory fileName,
             string memory fileDescription,
             address payable uploader,
-            bool isBanned
+            bool isBannedByMod,
+            bool isDelistedByOwner
         );
 }

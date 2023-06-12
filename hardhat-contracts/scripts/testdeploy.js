@@ -5,7 +5,7 @@ async function main() {
 
     // Deploy FileRegistry Contract
     const FileRegistry = await ethers.getContractFactory("FileRegistry");
-    const fileRegistry = await FileRegistry.deploy(deployer.address);
+    const fileRegistry = await FileRegistry.deploy();
     await fileRegistry.deployed();
     console.log("File Registry:", fileRegistry.address);
     console.log("Token Address:", await fileRegistry.getTokenAddress());
