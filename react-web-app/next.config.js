@@ -5,5 +5,6 @@ module.exports = {
   env: {
     NFTSTORAGE_API_KEY: process.env.NFTSTORAGE_API_KEY,
     SECRET: process.env.SECRET,
+    ENCRYPTION_KEY: process.env.ENCRYPTION_KEY
   },
 };
