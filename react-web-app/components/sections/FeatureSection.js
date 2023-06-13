@@ -8,7 +8,7 @@ export default () => {
                 </svg>,
             title: "Fast tokenization",
             desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec congue, nisl eget molestie varius, enim ex faucibus purus.",
-            href: "javascript:void(0)"
+            href: "/"
         },
         {
             icon:
@@ -17,7 +17,7 @@ export default () => {
                 </svg>,
             title: "Analytics",
             desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec congue, nisl eget molestie varius, enim ex faucibus purus.",
-            href: "javascript:void(0)"
+            href: "/"
         },
         {
             icon:
@@ -26,7 +26,7 @@ export default () => {
                 </svg>,
             title: "Secured",
             desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec congue, nisl eget molestie varius, enim ex faucibus purus.",
-            href: "javascript:void(0)"
+            href: "/"
         },
         {
             icon:
@@ -35,7 +35,7 @@ export default () => {
                 </svg>,
             title: "Build on your terms",
             desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec congue, nisl eget molestie varius, enim ex faucibus purus.",
-            href: "javascript:void(0)"
+            href: "/"
         },
         {
             icon:
@@ -44,7 +44,7 @@ export default () => {
                 </svg>,
             title: "Safe to use",
             desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec congue, nisl eget molestie varius, enim ex faucibus purus.",
-            href: "javascript:void(0)"
+            href: "/"
         },
         {
             icon:
@@ -53,7 +53,7 @@ export default () => {
                 </svg>,
             title: "Streamlined",
             desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec congue, nisl eget molestie varius, enim ex faucibus purus.",
-            href: "javascript:void(0)"
+            href: "/"
         },
     ]
 

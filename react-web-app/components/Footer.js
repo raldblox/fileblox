@@ -73,7 +73,7 @@ export default () => {
             <div className="gap-6 justify-between md:flex">
                 <div className="flex-1">
                     <div className="max-w-xs">
-                        <a href="javascript:void(0)" className='font-bold text-3xl text-orange-500'>
+                        <a href="/" className='font-bold text-3xl text-orange-500'>
                             FileBlox
                         </a>
                         <p className="leading-relaxed mt-2 text-[15px]">
