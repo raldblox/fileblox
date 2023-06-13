@@ -1,8 +1,10 @@
 import { Context } from "@/context"
-import axios from "axios";
 import { NFTStorage } from "nft.storage";
 import { useContext, useEffect, useState } from "react"
-import { AES } from 'crypto-js';
+import CryptoJS from 'crypto-js';
+import { mumbai } from "@/libraries/contractAddresses";
+import registryAbi from "/libraries/contractABIs/FileRegistry.json";
+import { ethers } from "ethers";
 
 export default () => {
 
@@ -115,7 +117,7 @@ export default () => {
                 name: fileData.fileName,
                 description: fileData.fileDescription,
                 size: fileData.fileSize,
-                image: fileData.filePath,
+                image: fileData.fileCover,
                 file: fileData.filePath
             });
             setMetadataURL(getIPFSGatewayURL(metaData.url));
@@ -132,28 +134,36 @@ export default () => {
     const encryptURL = async (url) => {
         handleNextStep(2);
         const encryptionKey = process.env.ENCRYPTION_KEY;
-        const encryptedURL = AES.encrypt((url), encryptionKey).toString();
-        console.log(encryptedURL);
+        const encryptedURL = CryptoJS.AES.encrypt(url, encryptionKey).toString();
         return encryptedURL;
     };
 
     const sendFileDataToChain = async (encryptedURL) => {
-        const { fileName, fileSize, filePrice, fileType, fileDescription } = fileData;
+        const { fileName, fileSize, filePrice, fileDescription } = fileData;
 
         try {
             handleNextStep(3);
-            setTxStatus("Sending mint transaction to Blockchain.");
+            setTxStatus("Sending encrypted file data to Blockchain.");
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             const connectedContract = new ethers.Contract(
-                nftContractAddress,
-                NFT.abi,
+                mumbai.Registry,
+                registryAbi,
                 provider.getSigner()
             );
-            const tx = await connectedContract.recordFile(encryptedURL, fileName, fileSize, filePrice, fileType, fileDescription);
-            console.log(encryptedURL);
-            setTxStatus("Minted successfully on the Blockchain.");
+            console.log(encryptedURL, fileName, fileSize, filePrice, category, fileDescription);
+            const tx = await connectedContract.recordFile(encryptedURL, fileName, fileSize, filePrice, category, fileDescription);
+            console.log(tx);
+            const receipt = await tx.wait();
+            if (receipt.status === 1) {
+                setTxStatus("Successfully recorded on the blockchain.");
+            } else {
+                setErrorMessage("Failed to record file on the blockchain.");
+            }
+
             return tx;
+
         } catch (error) {
+            setTxStatus("");
             setErrorMessage("Failed to send tx to blockchain.");
             console.log(error);
         }
@@ -283,7 +293,7 @@ export default () => {
                                     File Price
                                 </label>
                                 <input
-                                    type="text"
+                                    type="number"
                                     value={fileData.filePrice}
                                     onChange={handlePriceChange}
                                     required
@@ -300,7 +310,7 @@ export default () => {
                                     className="w-full px-3 py-2 mt-2 text-gray-500 bg-white border rounded-lg shadow-sm outline-none hover:bg-gray-50 focus:border-orange-600"
                                 >
                                     <option value="">--Select File Category--</option>
-                                    <option value="image">Image</option>
+                                    <option value="picture">Picture</option>
                                     <option value="music">Music</option>
                                     <option value="video">Video</option>
                                     <option value="document">Document</option>
