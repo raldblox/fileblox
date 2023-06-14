@@ -65,7 +65,7 @@ contract NFT is ERC721URIStorage {
         ) = fileRegistry.getFileDataByFileID(_fileIds[tokenId]);
 
         string memory fileAttributes_ = ""; // @note add attributes/traits based on file data
-        string memory fileImage_ = ""; // @note add generateImage() for each fileType
+        string memory fileImage_ = ""; // @note ipfs:// + CIC + cover
 
         return
             string(
