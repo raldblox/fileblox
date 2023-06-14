@@ -42,10 +42,10 @@ export default () => {
                         }
                     </div>
                     <h1 className="mx-auto text-4xl font-bold text-gray-800 md:text-5xl">
-                        Explore curated files on decentralized networks
+                    Protect your digital creations with Fileblox
                     </h1>
                     <p className="max-w-xl mx-auto xl:mx-0">
-                        Sed ut perspiciatis unde omnis iste natus voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae.
+                    Harness the power of decentralized file monetization and tokenization with FileBlox's NFT encryption technology.
                     </p>
                     <div className="items-center justify-center space-y-3 gap-x-3 sm:flex sm:space-y-0 xl:justify-start">
                         <a href="/marketplace" className="flex items-center justify-center px-4 py-2 font-medium text-white duration-150 bg-orange-600 rounded-lg gap-x-2 hover:bg-orange-500 active:bg-gray-900 md:inline-flex">

@@ -58,7 +58,7 @@ const LatestFiles = ({ type }) => {
     const fetchLatestFiles = async () => {
       if (fileRegistry) {
         try {
-          // Call the smart contract to get the latest recorded files for "graphics" file type
+          // Call the smart contract to get the latest recorded files for file type
           const fileIds = await fileRegistry.getAvailableFilesByType(type);
 
           // Sort file IDs by the latest recorded files and take only the first four
