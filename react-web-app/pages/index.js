@@ -1,7 +1,6 @@
 import Image from 'next/image'
 import { Inter } from 'next/font/google'
 import HeroSection from '@/components/sections/HeroSection'
-import GraphicsFiles from '@/components/sections/GraphicsFiles'
 import FeatureSection from '@/components/sections/FeatureSection'
 import StatsSection from '@/components/sections/StatsSection'
 import Testimonials from '@/components/sections/Testimonials'
@@ -14,7 +13,6 @@ export default function Home() {
   return (
     <>
       <HeroSection />
-      <GraphicsFiles />
       <FeatureSection />
       <StatsSection />
       <Testimonials />
