@@ -3,9 +3,9 @@ import { ethers } from "ethers";
 import { mumbai } from "@/libraries/contractAddresses";
 import registryAbi from "/libraries/contractABIs/FileRegistry.json";
 
-const contractAddress = process.env.REGISTRY_CONTRACT_ADDRESS; 
+const contractAddress = process.env.REGISTRY_CONTRACT_ADDRESS;
 
-const GraphicsFiles = () => {
+const LatestFiles = ({ type }) => {
   const [provider, setProvider] = useState(null);
   const [fileRegistry, setFileRegistry] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -23,17 +23,8 @@ const GraphicsFiles = () => {
           const provider = new ethers.providers.Web3Provider(window.ethereum);
           setProvider(provider);
 
-          // Get the network ID
-          const network = await provider.getNetwork();
-
-          // Get the contract ABI
-          const contractAbi = FileRegistryContract.abi;
-
-          // Get the contract address from the deployed contract
-          const contractAddress = FileRegistryContract.networks[network.chainId].address;
-
           // Create a new instance of the contract
-          const fileRegistry = new ethers.Contract(contractAddress, contractAbi, provider.getSigner());
+          const fileRegistry = new ethers.Contract(mumbai.Registry, registryAbi, provider.getSigner());
           setFileRegistry(fileRegistry);
         } catch (error) {
           console.error(error);
@@ -47,44 +38,48 @@ const GraphicsFiles = () => {
   }, []);
 
   useEffect(() => {
-    const fetchGraphicsFiles = async () => {
+    const fetchLatestFiles = async () => {
       if (fileRegistry) {
         try {
           // Call the smart contract to get the latest recorded files for "graphics" file type
-          const fileIds = await fileRegistry.getAvailableFilesByType('graphics');
-    
+          const fileIds = await fileRegistry.getAvailableFilesByType(type);
+
           // Sort file IDs by the latest recorded files and take only the first four
           const sortedFileIds = fileIds.sort((a, b) => b - a).slice(0, 4);
 
           // Fetch file details for the four most recent file IDs
           const filePromises = sortedFileIds.map(async (fileId) => {
-          const fileData = await fileRegistry.getFileDataByFileID(fileId);
+            const fileData = await fileRegistry.getFileDataByFileID(fileId);
+
             return {
-              fileId: fileData[0],
-              filePath: fileData[1],
-              fileSize: fileData[2],
-              filePrice: fileData[3],
-              fileType: fileData[4],
-              fileName: fileData[5],
-              fileDescription: fileData[6],
-              uploader: fileData[7],
-              isBannedByMod: fileData[8],
-              isDelistedByOwner: fileData[9],
+              fileId: fileId,
+              filePath: fileData[0],
+              fileSize: fileData[1].toNumber(),
+              filePrice: fileData[2].toNumber(),
+              fileType: fileData[3],
+              fileName: fileData[4],
+              fileDescription: fileData[5],
+              uploader: fileData[6],
+              isBannedByMod: fileData[7],
+              isDelistedByOwner: fileData[8],
             };
           });
+
+          console.log(filePromises);
 
           // Wait for all file details to be fetched
           const fetchedFiles = await Promise.all(filePromises);
 
           // Set the state with the fetched files
           setFiles(fetchedFiles);
+
         } catch (error) {
           console.error(error);
         }
       }
     };
 
-    fetchGraphicsFiles();
+    fetchLatestFiles();
   }, [fileRegistry]);
 
   const handleMintNFT = async (fileId, quantity) => {
@@ -105,7 +100,7 @@ const GraphicsFiles = () => {
   const openModal = () => {
     setIsModalOpen(true);
   };
-  
+
   const closeModal = () => {
     setIsModalOpen(false);
   };
@@ -120,7 +115,7 @@ const GraphicsFiles = () => {
 
   const FileDetailsModal = ({ selectedFile, onClose }) => {
     return (
-      <div className="modal">
+      <div className="absolute bg-black">
         <div className="modal-content">
           <h2 className="text-gray-800 text-3xl font-semibold sm:text-4xl">File Details</h2>
           {selectedFile && (
@@ -137,27 +132,42 @@ const GraphicsFiles = () => {
         </div>
       </div>
     );
-  };  
+  };
 
   return (
-  <section className="py-14 bg-orange-50">
-  <div className="max-w-screen-xl mx-auto px-4 text-gray-600 md:px-8">
-    <h1 className="text-gray-800 text-3xl font-semibold sm:text-4xl">Graphics Files</h1>
-    {files.map((file) => (
-      <div key={file.fileId}>
-        <img src={file.filePath} alt="File Cover" />
-        <h2>{file.fileName}</h2>
-        <p>Price: {file.filePrice}</p>
-        <button onClick={() => handleMintNFT(file.fileId)}>Mint NFT</button>
-        <button onClick={() => handleCheckDetails(file.fileId)}>Check Details</button>
-      </div>
-    ))}
-    {isModalOpen && (
-      <FileDetailsModal selectedFile={selectedFile} onClose={closeModal} />
-    )}
-  </div>
-  </section>
+    <section className="mx-auto px-4 w-full md:px-8 items-start justify-start md:flex">
+      <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        {files ? (
+          files.map((item, key) => (
+            <li className="border rounded-lg" key={key}>
+              <div className="flex items-start justify-between p-4 gap-4">
+                <div className="space-y-2">
+                  {item.icon}
+                  <h4 className="text-gray-800 font-semibold">File Name: {item.fileName}</h4>
+                  <p className="text-gray-600 text-sm flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                    </svg>
+                    {item.filePrice} $APE</p>
+                </div>
+                <button onClick={() => handleMintNFT(item.fileId)} className="text-gray-700 text-sm border rounded-lg px-3 py-2 duration-150 hover:bg-gray-100">Mint NFT</button>
+              </div>
+              <div className="py-5 px-4 border-t text-right">
+                <button onClick={() => handleCheckDetails(item.fileId.toNumber())} className="text-indigo-600 hover:text-indigo-500 text-sm font-medium">
+                  Check Details
+                </button>
+              </div>
+            </li>
+          ))) :
+          <div>Loading...</div>
+        }
+      </ul>
+      {isModalOpen && (
+        <FileDetailsModal selectedFile={selectedFile} onClose={closeModal} />
+      )}
+    </section>
   );
 };
 
-export default GraphicsFiles;
+export default LatestFiles;
