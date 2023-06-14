@@ -78,8 +78,8 @@ const MyTokens = () => {
   const decryptURL = async (url) => {
     handleNextStep(2);
     const encryptionKey = process.env.ENCRYPTION_KEY;
-    const encryptedURL = CryptoJS.AES.encrypt(url, encryptionKey).toString();
-    return encryptedURL;
+    const decryptedURL = CryptoJS.AES.decrypt(url, encryptionKey).toString();
+    return decryptedURL;
 };
 
   const handleDownload = (fileId) => {
