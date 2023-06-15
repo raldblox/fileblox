@@ -13,6 +13,7 @@ contract FileRegistry is IFileRegistry, ReentrancyGuard, Ownable {
     Counters.Counter private _fileIds;
 
     NFT public token;
+    IERC20 private apeToken;
 
     mapping(address => bool) private isMod;
 
@@ -64,10 +65,11 @@ contract FileRegistry is IFileRegistry, ReentrancyGuard, Ownable {
     event FileTokenMinted(uint256 indexed fileId, address buyerAddress);
     event FileTypeAdded(string fileType);
 
-    constructor() {
+    constructor(address _apeTokenAddress) {
         platformFee = 0.005 ether;
         token = new NFT("FileBloxToken", "FBT"); // @note deploy NFT.sol and link to FileRegistry
         isMod[msg.sender] = true;
+        apeToken = IERC20(_apeTokenAddress);
     }
 
     // Modifier to check that the caller is the moderator
@@ -183,36 +185,64 @@ contract FileRegistry is IFileRegistry, ReentrancyGuard, Ownable {
     }
 
     // @dev Allows the user to pay for a file and mint tokens based on the specified token quantity and fileID
-    function payForFile(uint256 _fileID, uint256 _tokenQuantity) public payable nonReentrant returns (bool) {
-        require(files[_fileID].uploader != address(0), "File does not exist");
-        require(files[_fileID].isBannedByMod != true, "File is banned by moderators");
-        require(files[_fileID].isDelistedByOwner != true, "File is delisted by uploader");
+    function payForFile(uint256 _fileID, uint256 _tokenQuantity) public nonReentrant returns (bool) {
+    require(files[_fileID].uploader != address(0), "File does not exist");
+    require(!files[_fileID].isBannedByMod, "File is banned by moderators");
+    require(!files[_fileID].isDelistedByOwner, "File is delisted by uploader");
 
-        // Calculate the total price for the specified token quantity
-        uint256 totalPrice = (files[_fileID].filePrice + platformFee) * _tokenQuantity;
-        require(msg.value >= totalPrice, "Not paid");
+    // Calculate the total price for the specified token quantity
+    uint256 totalPrice = (files[_fileID].filePrice + platformFee) * _tokenQuantity;
 
-        // Calculate the payment for each token
-        uint256 paymentPerToken = files[_fileID].filePrice + platformFee;
+    // Makes sure that msg.sender has enough APE balance to make the transaction
+    require(apeToken.balanceOf(msg.sender) >= totalPrice, "Insufficient tokens");
 
-        // Transfers payment from msg.sender to uploader
-        files[_fileID].uploader.transfer(paymentPerToken * _tokenQuantity);
+    // Transfer APE tokens from msg.sender to the contract. I used this syntax for max security
+    // will revert if transfer returns false
+    (bool success, bytes memory data) = address(apeToken).call(
+        abi.encodeWithSelector(
+            apeToken.transferFrom.selector,
+            msg.sender,
+            address(this),
+            totalPrice
+        )
+    );
+    require(success && (data.length == 0 || abi.decode(data, (bool))), "Token transfer failed");
 
-        // Transfers platformFee from msg.sender to contract owner
-        payable(owner()).transfer(platformFee * _tokenQuantity);
+    // Calculate the payment for each token
+    uint256 paymentPerToken = files[_fileID].filePrice;
 
-        for (uint256 i = 0; i < _tokenQuantity; ++i) {
-            // Mints token to msg.sender
-            uint256 newTokenId = token.mintToken(_fileID, msg.sender, files[_fileID].fileType);
+    // Transfer payment in APE tokens from the contract to the uploader
+    (success, data) = address(apeToken).call(
+        abi.encodeWithSelector(
+            apeToken.transfer.selector,
+            files[_fileID].uploader,
+            paymentPerToken * _tokenQuantity
+        )
+    );
+    require(success && (data.length == 0 || abi.decode(data, (bool))), "Token transfer failed");
 
-            // Maps fileID to tokenId
-            _tokenIds[_fileID] = newTokenId;
+    // Transfer platformFee in APE tokens from the contract to the owner
+    (success, data) = address(apeToken).call(
+        abi.encodeWithSelector(
+            apeToken.transfer.selector,
+            owner(),
+            platformFee * _tokenQuantity
+        )
+    );
+    require(success && (data.length == 0 || abi.decode(data, (bool))), "Token transfer failed");
 
-            emit FileTokenMinted(_fileID, payable(msg.sender));
-        }
+    for (uint256 i = 0; i < _tokenQuantity; ++i) {
+        // Mints token to msg.sender
+        uint256 newTokenId = token.mintToken(_fileID, msg.sender, files[_fileID].fileType);
 
-        return true;
+        // Maps fileID to tokenId
+        _tokenIds[_fileID] = newTokenId;
+
+        emit FileTokenMinted(_fileID, payable(msg.sender));
     }
+
+    return true;
+}
 
     // @dev moderators ban/unban a file
     function banFile(uint256 _fileId, bool _isBanned) public onlyMod {
