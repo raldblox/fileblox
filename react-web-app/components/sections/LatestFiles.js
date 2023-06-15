@@ -13,7 +13,7 @@ const LatestFiles = ({ type }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isMintModalOpen, setIsMintModalOpen] = useState(false);
   const [files, setFiles] = useState([]);
-  const [qty, setQty] = useState("");
+  const [qty, setQty] = useState(1);
   const [copyState, setCopyState] = useState(false)
   const URLLink = "https://fileblox.io/shortlink"
 
@@ -106,14 +106,15 @@ const LatestFiles = ({ type }) => {
     fetchLatestFiles();
   }, [fileRegistry]);
 
-  const handleMintNFT = async (fileId) => {
-    if (qty === 0) { return }
+  const handleMintNFT = async () => {
     try {
       // Check if the provider and fileRegistry instances are set
       if (provider && fileRegistry) {
-
+        console.log(`Now minting ${qty} token/s for FileID ${selectedFile.fileId}`);
         // Prompt the user to pay for the file and mint NFT with the specified quantity
-        const transaction = await fileRegistry.payForFile(fileId, qty);
+        const transaction = await fileRegistry.payForFile(selectedFile.fileId, qty, {
+          value: ethers.utils.parseEther(String(qty * (selectedFile?.filePrice))),
+        });
         await transaction.wait();
         console.log(`${quantity} file(s) minted successfully`);
       }
@@ -237,17 +238,18 @@ const LatestFiles = ({ type }) => {
                     </svg>
                   </button>
                 </div>
-                <div className="grid">
+                <div className="grid opacity-90">
                   <p>File ID: {selectedFile?.fileId}</p>
                   <p>File Name: {selectedFile?.fileName}</p>
                   <p>File Description: {selectedFile?.fileDescription}</p>
                   <p>Uploader: {selectedFile?.uploader}</p>
-                  <p>File Price: {selectedFile?.filePrice * qty}</p>
+                  <p>File Price: {selectedFile?.filePrice} $APE</p>
+                  <p className="pt-2 mt-2 font-semibold">Mint Price: {qty * (selectedFile?.filePrice)} $APE</p>
                 </div>
                 <div className="flex items-center justify-between border rounded-md">
-                  <input className="w-full h-full px-4 py-3 text-sm text-gray-600 rounded-l-md" placeholder="Insert Token Quantity" onChange={setQty((e) => { e.target.value })} />
+                  <input className="w-full h-full px-4 py-3 text-sm text-gray-600 rounded-l-md" type="number" placeholder="Insert Token Quantity" value={qty} onChange={(e) => setQty(e.target.value)} />
                   <button className="flex-1 px-4 py-3 text-white bg-orange-600 outline-none rounded-r-md ring-offset-2 ring-orange-600 focus:ring-2"
-                    onClick={handleMintNFT(selectedFile?.fileId)}
+                    onClick={handleMintNFT}
                   >
                     MINT
                   </button>
