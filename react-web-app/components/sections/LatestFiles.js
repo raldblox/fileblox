@@ -10,7 +10,10 @@ const LatestFiles = ({ type }) => {
   const [fileRegistry, setFileRegistry] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isMintModalOpen, setIsMintModalOpen] = useState(false);
   const [files, setFiles] = useState([]);
+  const [qty, setQty] = useState("");
   const [copyState, setCopyState] = useState(false)
   const URLLink = "https://fileblox.io/shortlink"
 
@@ -58,14 +61,18 @@ const LatestFiles = ({ type }) => {
     const fetchLatestFiles = async () => {
       if (fileRegistry) {
         try {
+          setIsLoading(true);
           // Call the smart contract to get the latest recorded files for file type
           const fileIds = await fileRegistry.getAvailableFilesByType(type);
 
-          // Sort file IDs by the latest recorded files and take only the first four
-          const sortedFileIds = fileIds.sort((a, b) => b - a).slice(0, 4);
+          // Convert BigNumber array to regular number array
+          const fileIdsAsNumbers = fileIds.map((id) => id.toNumber());
+
+          // Sort file IDs in reverse to see the latest recorded files
+          const reversedFileIds = fileIdsAsNumbers.reverse();
 
           // Fetch file details for the four most recent file IDs
-          const filePromises = sortedFileIds.map(async (fileId) => {
+          const filePromises = reversedFileIds.map(async (fileId) => {
             const fileData = await fileRegistry.getFileDataByFileID(fileId);
 
             return {
@@ -81,17 +88,17 @@ const LatestFiles = ({ type }) => {
               isDelistedByOwner: fileData[8],
             };
           });
-
-          console.log(filePromises);
-
           // Wait for all file details to be fetched
           const fetchedFiles = await Promise.all(filePromises);
 
+          console.log(`Fetched ${type}`, fetchedFiles);
+
           // Set the state with the fetched files
           setFiles(fetchedFiles);
-
+          setIsLoading(false);
         } catch (error) {
           console.error(error);
+          setIsLoading(false);
         }
       }
     };
@@ -99,13 +106,14 @@ const LatestFiles = ({ type }) => {
     fetchLatestFiles();
   }, [fileRegistry]);
 
-  const handleMintNFT = async (fileId, quantity) => {
+  const handleMintNFT = async (fileId) => {
+    if (qty === 0) { return }
     try {
       // Check if the provider and fileRegistry instances are set
       if (provider && fileRegistry) {
 
         // Prompt the user to pay for the file and mint NFT with the specified quantity
-        const transaction = await fileRegistry.payForFile(fileId, quantity);
+        const transaction = await fileRegistry.payForFile(fileId, qty);
         await transaction.wait();
         console.log(`${quantity} file(s) minted successfully`);
       }
@@ -122,27 +130,35 @@ const LatestFiles = ({ type }) => {
     setIsModalOpen(false);
   };
 
+  const openMintModal = () => {
+    setIsMintModalOpen(true);
+  };
+
+  const closeMintModal = () => {
+    setIsMintModalOpen(false);
+  };
+
   const handleCheckDetails = (fileId) => {
     // Set the selected file to be displayed in the modal
+    console.log("Selected FileId:", fileId);
     const selectedFile = files.find((file) => file.fileId === fileId);
-    console.log(selectedFile)
+    console.log("Selected file:", selectedFile);
     setSelectedFile(selectedFile);
     // Open the modal
     openModal();
   };
 
-  const FileDetailsModal = ({ selectedFile }) => {
+  const FileDetailsModal = () => {
     return (
       <>
-
-        <div className="fixed inset-0 z-10 overflow-y-auto">
+        <div className="fixed inset-0 z-10 overflow-y-auto mt-[20vh]">
           <div className="fixed inset-0 w-full h-full bg-black opacity-40" onClick={closeModal}></div>
-          <div className="flex items-center min-h-screen px-4 py-8">
+          <div className="flex items-center min-h-[50vh] px-4 py-8">
             <div className="relative w-full max-w-lg p-4 mx-auto bg-white rounded-md shadow-lg">
               <div className="py-3 space-y-4">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h2 className="text-gray-800 text-3xl font-semibold sm:text-2xl">File Details</h2>
+                    <h2 className="text-3xl font-semibold text-gray-800 sm:text-2xl">File Details</h2>
                     <p className="text-[15px] text-gray-600 mt-4">
                       Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.
                     </p>
@@ -163,12 +179,12 @@ const LatestFiles = ({ type }) => {
                   <p>File Description: {selectedFile?.fileDescription}</p>
                   <p>Uploader: {selectedFile?.uploader}</p>
                 </div>
-                <div className="p-2 border rounded-lg flex items-center justify-between">
-                  <p className="text-sm text-gray-600 overflow-hidden">{URLLink}</p>
+                <div className="flex items-center justify-between p-2 border rounded-lg">
+                  <p className="overflow-hidden text-sm text-gray-600">{URLLink}/{selectedFile?.fileId}</p>
                   <button className={`relative text-gray-500 ${copyState ? "text-orange-600 pointer-events-none" : ""}`}
                     onClick={handleCopy}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
                     {
@@ -191,39 +207,98 @@ const LatestFiles = ({ type }) => {
     );
   };
 
+  const handleMintDetails = (fileId) => {
+    // Set the selected file to be displayed in the modal
+    console.log("Selected FileId:", fileId);
+    const selectedFile = files.find((file) => file.fileId === fileId);
+    console.log("Selected file:", selectedFile);
+    setSelectedFile(selectedFile);
+    // Open the modal
+    openMintModal();
+  };
+
+  const MintNFTModal = () => {
+    return (
+      <>
+        <div className="fixed inset-0 z-10 overflow-y-auto mt-[20vh]">
+          <div className="fixed inset-0 w-full h-full bg-black opacity-40" onClick={closeMintModal}></div>
+          <div className="flex items-center min-h-[50vh] px-4 py-8">
+            <div className="relative w-full max-w-lg p-4 mx-auto bg-white rounded-md shadow-lg">
+              <div className="py-3 space-y-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h2 className="text-3xl font-semibold text-gray-800 sm:text-2xl">Mint Token</h2>
+                  </div>
+                  <button className="p-2 text-gray-400 rounded-md hover:bg-gray-100"
+                    onClick={closeMintModal}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mx-auto" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="grid">
+                  <p>File ID: {selectedFile?.fileId}</p>
+                  <p>File Name: {selectedFile?.fileName}</p>
+                  <p>File Description: {selectedFile?.fileDescription}</p>
+                  <p>Uploader: {selectedFile?.uploader}</p>
+                  <p>File Price: {selectedFile?.filePrice * qty}</p>
+                </div>
+                <div className="flex items-center justify-between border rounded-md">
+                  <input className="w-full h-full px-4 py-3 text-sm text-gray-600 rounded-l-md" placeholder="Insert Token Quantity" onChange={setQty((e) => { e.target.value })} />
+                  <button className="flex-1 px-4 py-3 text-white bg-orange-600 outline-none rounded-r-md ring-offset-2 ring-orange-600 focus:ring-2"
+                    onClick={handleMintNFT(selectedFile?.fileId)}
+                  >
+                    MINT
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  };
+
   return (
-    <section className="mx-auto px-4 w-full md:px-8 items-start justify-start md:flex">
-      <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        {files ? (
+    <div className="items-start justify-start gap-5 px-4 mx-auto md:px-8 flex flex-col min-h-[30vh] w-full">
+      <p className="w-full text-xl font-bold text-orange-600 uppercase ">{type}</p>
+      <ul className="grid w-full gap-5 pt-5 border-t sm:grid-cols-2 lg:grid-cols-4">
+        {files && (
           files.map((item, key) => (
-            <li className="border rounded-lg" key={key}>
-              <div className="flex items-start justify-between p-4 gap-10">
+            <li className="bg-white border rounded-lg shadow-md hover:shadow group" key={key}>
+              <div className="flex items-start justify-between gap-10 p-4 min-h-[20vh]">
                 <div className="space-y-2">
                   {item.icon}
-                  <h4 className="text-gray-800 font-semibold">File Name: {item.fileName}</h4>
-                  <p className="text-gray-600 text-sm flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <h4 className="font-semibold text-gray-800">{item.fileName}</h4>
+                  <p className="flex items-center text-sm text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                       <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
                     </svg>
                     {item.filePrice} $APE</p>
                 </div>
-                <button onClick={() => handleMintNFT(item.fileId)} className="text-gray-700 text-sm border rounded-lg px-3 py-2 duration-150 hover:bg-gray-100">Mint NFT</button>
+                <button onClick={() => handleMintDetails(item.fileId)} className="px-3 py-2 text-sm text-gray-700 duration-150 rounded-lg shadow-md hover:shadow group-hover:bg-orange-500 group-hover:text-white hover:bg-white whitespace-nowrap">Mint NFT</button>
               </div>
-              <div className="py-5 px-4 border-t text-right">
-                <button onClick={() => handleCheckDetails(item.fileId.toNumber())} className="text-orange-600 hover:text-orange-500 text-sm font-medium">
+              <div className="px-4 py-3 text-right border-t rounded-b-lg group-hover:bg-orange-50 ">
+                <button onClick={() => handleCheckDetails(item.fileId)} className="text-sm font-medium text-orange-600 group-hover:text-black hover:text-orange-500 whitespace-nowrap">
                   Check Details
                 </button>
               </div>
             </li>
-          ))) :
-          <div>Loading...</div>
+          )))}
+        {isLoading &&
+          <li className="w-full">Loading...</li>
         }
       </ul>
+
       {isModalOpen && (
         <FileDetailsModal selectedFile={selectedFile} onClose={closeModal} />
       )}
-    </section>
+      {isMintModalOpen && (
+        <MintNFTModal selectedFile={selectedFile} onClose={closeModal} />
+      )}
+    </div>
   );
 };
 
