@@ -113,6 +113,35 @@ const LatestFiles = ({ type }) => {
     fetchLatestFiles();
   }, [fileRegistry]);
 
+  const handleApproval = async () => {
+    try {
+      // Check if the provider, fileRegistry, and apeToken instances are set
+      if (provider && fileRegistry && apeToken) {
+        const signer = provider.getSigner();
+        const walletAddress = await signer.getAddress();
+        console.log(`Approving token spending for FileID ${selectedFile.fileId}`);
+
+        // Calculate the total payment amount
+        const totalPrice = qty * selectedFile.filePrice;
+
+        // Check the Ape token balance of the user
+        const balance = await apeToken.balanceOf(walletAddress);
+        if (balance.lt(totalPrice)) {
+          console.log("Insufficient Ape tokens");
+          return;
+        }
+
+        // Prompt user to approve the fileRegistry contract to spend Ape tokens on his behalf
+        const approvalTx = await apeToken.approve(fileRegistry.address, totalPrice);
+        await approvalTx.wait();
+
+        console.log(`Token spend approved successfully`);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const handleMintNFT = async () => {
     try {
       // Check if the provider, fileRegistry, and apeToken instances are set
@@ -131,10 +160,6 @@ const LatestFiles = ({ type }) => {
           return;
         }
 
-        // Prompt user to approve the fileRegistry contract to spend Ape tokens on his behalf
-        const approvalTx = await apeToken.approve(fileRegistry.address, totalPrice);
-        await approvalTx.wait();
-
         // Prompt the user to pay for the file and mint NFT with the specified quantity
         const transaction = await fileRegistry.payForFile(selectedFile.fileId, qty);
         await transaction.wait();
@@ -145,6 +170,7 @@ const LatestFiles = ({ type }) => {
       console.error(error);
     }
   };
+
 
   const openModal = () => {
     setIsModalOpen(true);
@@ -270,10 +296,16 @@ const LatestFiles = ({ type }) => {
                 <div className="flex items-center justify-between border rounded-md">
                   <input className="w-full h-full px-4 py-3 text-sm text-gray-600 rounded-l-md" type="number" placeholder="Insert Token Quantity" value={qty} onChange={(e) => setQty(e.target.value)} />
                   <button className="flex-1 px-4 py-3 text-white bg-orange-600 outline-none rounded-r-md ring-offset-2 ring-orange-600 focus:ring-2"
-                    onClick={handleMintNFT}
+                    onClick={handleApproval}
                   >
-                    MINT
+                  ALLOW SPEND
                   </button>
+                  <button
+                  className="flex-1 px-4 py-3 ml-4 text-white bg-green-600 outline-none rounded-md ring-offset-2 ring-green-600 focus:ring-2"
+                  onClick={handleMintNFT}
+                >
+                  MINT
+                </button>
                 </div>
               </div>
             </div>
