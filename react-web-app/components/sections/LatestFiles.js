@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { mumbai } from "@/libraries/contractAddresses";
 import registryAbi from "/libraries/contractABIs/FileRegistry.json";
+import { Skeleton } from "@mui/material";
 
 const contractAddress = process.env.REGISTRY_CONTRACT_ADDRESS;
 
@@ -15,7 +16,7 @@ const LatestFiles = ({ type }) => {
   const [files, setFiles] = useState([]);
   const [qty, setQty] = useState(1);
   const [copyState, setCopyState] = useState(false)
-  const URLLink = "https://fileblox.io/shortlink"
+  const URLLink = "https://fileblox.io/file"
 
   // Copy the link
   const handleCopy = () => {
@@ -110,7 +111,7 @@ const LatestFiles = ({ type }) => {
     try {
       // Check if the provider and fileRegistry instances are set
       if (provider && fileRegistry) {
-        console.log(`Now minting ${qty} token/s for FileID ${selectedFile.fileId}`);
+        console.log(`Now minting ${qty} token/s with FileID ${selectedFile.fileId} for $${String(qty * (selectedFile?.filePrice))}`);
         // Prompt the user to pay for the file and mint NFT with the specified quantity
         const transaction = await fileRegistry.payForFile(selectedFile.fileId, qty, {
           value: ethers.utils.parseEther(String(qty * (selectedFile?.filePrice))),
@@ -159,9 +160,9 @@ const LatestFiles = ({ type }) => {
               <div className="py-3 space-y-4">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h2 className="text-3xl font-semibold text-gray-800 sm:text-2xl">File Details</h2>
+                    <h2 className="text-3xl font-semibold text-gray-800 sm:text-2xl">{selectedFile?.fileName}</h2>
                     <p className="text-[15px] text-gray-600 mt-4">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.
+                      Description: {selectedFile?.fileDescription}
                     </p>
                   </div>
                   <button className="p-2 text-gray-400 rounded-md hover:bg-gray-100"
@@ -174,10 +175,8 @@ const LatestFiles = ({ type }) => {
                 </div>
                 <div className="grid">
                   <p>File ID: {selectedFile?.fileId}</p>
-                  <p>File Name: {selectedFile?.fileName}</p>
                   <p>File Type: {selectedFile?.fileType}</p>
                   <p>File Price: {selectedFile?.filePrice}</p>
-                  <p>File Description: {selectedFile?.fileDescription}</p>
                   <p>Uploader: {selectedFile?.uploader}</p>
                 </div>
                 <div className="flex items-center justify-between p-2 border rounded-lg">
@@ -290,7 +289,75 @@ const LatestFiles = ({ type }) => {
             </li>
           )))}
         {isLoading &&
-          <li className="w-full">Loading...</li>
+          <><li className="bg-white border rounded-lg shadow-md hover:shadow group">
+            <div className="flex items-start justify-between gap-10 p-4 min-h-[20vh]">
+              <div className="space-y-2">
+                <h4 className="font-semibold text-gray-800"><Skeleton variant="rectangular" width={210} height={50} /></h4>
+                <p className="flex items-center text-sm text-gray-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                  </svg>
+                  <Skeleton variant="rectangular" width={210} height={20} /></p>
+              </div>
+              <Skeleton variant="rectangular" width={210} height={20} />
+            </div>
+            <div className="px-4 py-3 text-right border-t rounded-b-lg group-hover:bg-orange-50 ">
+              <Skeleton variant="rectangular" width={210} height={20} />
+            </div>
+          </li>
+            <li className="bg-white border rounded-lg shadow-md hover:shadow group">
+              <div className="flex items-start justify-between gap-10 p-4 min-h-[20vh]">
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-gray-800"><Skeleton variant="rectangular" width={210} height={50} /></h4>
+                  <p className="flex items-center text-sm text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                    </svg>
+                    <Skeleton variant="rectangular" width={210} height={20} /></p>
+                </div>
+                <Skeleton variant="rectangular" width={210} height={20} />
+              </div>
+              <div className="px-4 py-3 text-right border-t rounded-b-lg group-hover:bg-orange-50 ">
+                <Skeleton variant="rectangular" width={210} height={20} />
+              </div>
+            </li>
+            <li className="bg-white border rounded-lg shadow-md hover:shadow group">
+              <div className="flex items-start justify-between gap-10 p-4 min-h-[20vh]">
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-gray-800"><Skeleton variant="rectangular" width={210} height={50} /></h4>
+                  <p className="flex items-center text-sm text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                    </svg>
+                    <Skeleton variant="rectangular" width={210} height={20} /></p>
+                </div>
+                <Skeleton variant="rectangular" width={210} height={20} />
+              </div>
+              <div className="px-4 py-3 text-right border-t rounded-b-lg group-hover:bg-orange-50 ">
+                <Skeleton variant="rectangular" width={210} height={20} />
+              </div>
+            </li>
+            <li className="bg-white border rounded-lg shadow-md hover:shadow group">
+              <div className="flex items-start justify-between gap-10 p-4 min-h-[20vh]">
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-gray-800"><Skeleton variant="rectangular" width={210} height={50} /></h4>
+                  <p className="flex items-center text-sm text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                    </svg>
+                    <Skeleton variant="rectangular" width={210} height={20} /></p>
+                </div>
+                <Skeleton variant="rectangular" width={210} height={20} />
+              </div>
+              <div className="px-4 py-3 text-right border-t rounded-b-lg group-hover:bg-orange-50 ">
+                <Skeleton variant="rectangular" width={210} height={20} />
+              </div>
+            </li>
+          </>
         }
       </ul>
 
