@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { mumbai } from "@/libraries/contractAddresses";
 import registryAbi from "/libraries/contractABIs/FileRegistry.json";
+import apeTokenAbi from "@/libraries/contractABIs/ApeToken.json";
 import { Skeleton } from "@mui/material";
 
 const contractAddress = process.env.REGISTRY_CONTRACT_ADDRESS;
@@ -9,6 +10,7 @@ const contractAddress = process.env.REGISTRY_CONTRACT_ADDRESS;
 const LatestFiles = ({ type }) => {
   const [provider, setProvider] = useState(null);
   const [fileRegistry, setFileRegistry] = useState(null);
+  const [apeToken, setApeToken] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,6 +45,10 @@ const LatestFiles = ({ type }) => {
           // Create a new ethers provider using MetaMask's provider
           const provider = new ethers.providers.Web3Provider(window.ethereum);
           setProvider(provider);
+
+          // Create a new instance of the ApeToken contract
+          const apeToken = new ethers.Contract(process.env.ERC20_ADDRESS, apeTokenAbi, signer);
+          setApeToken(apeToken);
 
           // Create a new instance of the contract
           const fileRegistry = new ethers.Contract(mumbai.Registry, registryAbi, provider.getSigner());
@@ -109,15 +115,31 @@ const LatestFiles = ({ type }) => {
 
   const handleMintNFT = async () => {
     try {
-      // Check if the provider and fileRegistry instances are set
-      if (provider && fileRegistry) {
-        console.log(`Now minting ${qty} token/s with FileID ${selectedFile.fileId} for $${String(qty * (selectedFile?.filePrice))}`);
+      // Check if the provider, fileRegistry, and apeToken instances are set
+      if (provider && fileRegistry && apeToken) {
+        const signer = provider.getSigner();
+        const walletAddress = await signer.getAddress();
+        console.log(`Now minting ${qty} token/s for FileID ${selectedFile.fileId}`);
+  
+        // Calculate the total payment amount
+        const totalPrice = qty * selectedFile.filePrice;
+  
+        // Check the Ape token balance of the user
+        const balance = await apeToken.balanceOf(walletAddress);
+        if (balance.lt(totalPrice)) {
+          console.log("Insufficient Ape tokens");
+          return;
+        }
+  
+        // Prompt user to approve the fileRegistry contract to spend Ape tokens on his behalf
+        const approvalTx = await apeToken.approve(fileRegistry.address, totalPrice);
+        await approvalTx.wait();
+  
         // Prompt the user to pay for the file and mint NFT with the specified quantity
-        const transaction = await fileRegistry.payForFile(selectedFile.fileId, qty, {
-          value: ethers.utils.parseEther(String(qty * (selectedFile?.filePrice))),
-        });
+        const transaction = await fileRegistry.payForFile(selectedFile.fileId, qty);
         await transaction.wait();
-        console.log(`${quantity} file(s) minted successfully`);
+  
+        console.log(`${qty} file(s) minted successfully`);
       }
     } catch (error) {
       console.error(error);
