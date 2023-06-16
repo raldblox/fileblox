@@ -13,7 +13,7 @@ export default function Page() {
                             Recent files ({router.query.type})
                         </h3>
                         <p className="text-gray-600 mt-2">
-                            This is a well-curated marketplace of digital assets from the top creators of the industry
+                            Check out some well-curated digital assets from the top creators of the industry
                         </p>
                     </div>
                     <div className="mt-3 md:mt-0">
