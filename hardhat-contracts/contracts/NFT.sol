@@ -64,8 +64,21 @@ contract NFT is ERC721URIStorage {
             bool isDelistedByOwner
         ) = fileRegistry.getFileDataByFileID(_fileIds[tokenId]);
 
-        string memory fileAttributes_ = ""; // @note add attributes/traits based on file data
-        string memory fileImage_ = ""; // @note ipfs:// + CIC + cover
+        string memory fileAttributes_ = string(
+            abi.encodePacked(
+                '{"trait_type": "Catergory", "value": "',
+                fileType,
+                '"},{"trait_type": "Description", "value": "',
+                fileDescription,
+                '"},{"trait_type": "File Size", "value": "',
+                fileSize,
+                '"},{"trait_type": "File Price", "value": "',
+                Strings.toString(filePrice),
+                '"}'
+            )
+        );
+
+        string memory fileImage_ = generateImage(_fileIds[tokenId]);
 
         return
             string(
@@ -88,6 +101,20 @@ contract NFT is ERC721URIStorage {
                     )
                 )
             );
+    }
+
+    function generateImage(uint256 fileId) public view returns (string memory) {
+        string memory fileImage_ = string(
+            abi.encodePacked(
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">',
+                '<text x="50%" y="45%" text-anchor="middle" dominant-baseline="middle" font-size="24" font-family="Arial" font-weight="bold" fill="#F36E31">FileBlox</text>',
+                '<text x="50%" y="55%" text-anchor="middle" dominant-baseline="middle" font-size="12" font-family="Arial" font-weight="bold" fill="#5b5b5b">',
+                Strings.toString(_fileIds[fileId]),
+                "</text></svg>"
+            )
+        );
+
+        return string(abi.encodePacked("data:image/svg+xml;base64,", Base64.encode(bytes(fileImage_))));
     }
 
     function getTokensOwnedByMe() public view returns (uint256[] memory) {
