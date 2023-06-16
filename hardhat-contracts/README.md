@@ -21,3 +21,6 @@ npx hardhat verify --network goerli [CONTRACT_ADDRESS]
 - Hyperspace
   - FileRegistry:
   - FileToken:
+- Goerli
+  - FileRegistry: (0x594a471A6F5CF014b7D0d629f2da77a744143fd2)[https://goerli.etherscan.io/address/0x594a471A6F5CF014b7D0d629f2da77a744143fd2#code]
+  - FileToken: (0x1729114Ba2c2B4c689D0ACB4fB83D370F840a71D)[https://goerli.etherscan.io/address/0x1729114Ba2c2B4c689D0ACB4fB83D370F840a71D#code]
