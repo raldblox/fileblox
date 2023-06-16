@@ -50,6 +50,7 @@ contract NFT is ERC721URIStorage {
 
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         require(_exists(tokenId), "Error: Nonexistent Token");
+        uint256 fileId = _fileIds[tokenId];
 
         IFileRegistry fileRegistry = IFileRegistry(registryAddress);
         (
@@ -62,23 +63,11 @@ contract NFT is ERC721URIStorage {
             address payable uploader,
             bool isBannedByMod,
             bool isDelistedByOwner
-        ) = fileRegistry.getFileDataByFileID(_fileIds[tokenId]);
+        ) = fileRegistry.getFileDataByFileID(fileId);
 
-        string memory fileAttributes_ = string(
-            abi.encodePacked(
-                '{"trait_type": "Catergory", "value": "',
-                fileType,
-                '"},{"trait_type": "Description", "value": "',
-                fileDescription,
-                '"},{"trait_type": "File Size", "value": "',
-                fileSize,
-                '"},{"trait_type": "File Price", "value": "',
-                Strings.toString(filePrice),
-                '"}'
-            )
-        );
+        string memory fileAttributes_ = generateAttributes(fileType, fileDescription, fileSize, filePrice);
 
-        string memory fileImage_ = generateImage(_fileIds[tokenId]);
+        string memory fileImage_ = generateImage(fileId);
 
         return
             string(
@@ -99,6 +88,28 @@ contract NFT is ERC721URIStorage {
                             )
                         )
                     )
+                )
+            );
+    }
+
+    function generateAttributes(
+        string memory fileType,
+        string memory fileDescription,
+        uint256 fileSize,
+        uint256 filePrice
+    ) public pure returns (string memory) {
+        return
+            string(
+                abi.encodePacked(
+                    '{"trait_type": "Category", "value": "',
+                    fileType,
+                    '"},{"trait_type": "Description", "value": "',
+                    fileDescription,
+                    '"},{"trait_type": "File Size", "value": "',
+                    Strings.toString(fileSize),
+                    '"},{"trait_type": "File Price", "value": "',
+                    Strings.toString(filePrice),
+                    '"}'
                 )
             );
     }
