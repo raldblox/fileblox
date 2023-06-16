@@ -11,7 +11,7 @@ contract NFT is ERC721URIStorage {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
-    address private registryAddress;
+    address public registryAddress;
 
     mapping(uint256 => address) private _creators;
     mapping(uint256 => uint256) private _fileIds;
@@ -19,8 +19,8 @@ contract NFT is ERC721URIStorage {
 
     event TokenMinted(uint256 indexed tokenId, uint256 fileId, address registryAddress);
 
-    constructor(string memory _tokenName, string memory _tokenSymbol, address _registryAddress) ERC721(_tokenName, _tokenSymbol) {
-        registryAddress = _registryAddress;
+    constructor(string memory _tokenName, string memory _tokenSymbol) ERC721(_tokenName, _tokenSymbol) {
+        registryAddress = msg.sender;
     }
 
     // Modifier to check that the caller is the File Registry Contract
@@ -40,9 +40,6 @@ contract NFT is ERC721URIStorage {
 
         //maps tokenID to fileId
         _fileIds[newItemId] = _fileId;
-
-        // Give the marketplace approval to transact NFTs between users
-        setApprovalForAll(registryAddress, true);
 
         emit TokenMinted(newItemId, _fileId, registryAddress);
         return newItemId;
