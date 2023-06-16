@@ -2,7 +2,7 @@ import { Context } from "@/context"
 import { NFTStorage } from "nft.storage";
 import { useContext, useEffect, useState } from "react"
 import CryptoJS from 'crypto-js';
-import { mumbai } from "@/libraries/contractAddresses";
+import { goerli, mumbai } from "@/libraries/contractAddresses";
 import registryAbi from "/libraries/contractABIs/FileRegistry.json";
 import { ethers } from "ethers";
 
@@ -146,7 +146,7 @@ export default () => {
             setTxStatus("Sending encrypted file data to Blockchain.");
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             const connectedContract = new ethers.Contract(
-                mumbai.Registry,
+                goerli.Registry,
                 registryAbi,
                 provider.getSigner()
             );

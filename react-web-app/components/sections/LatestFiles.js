@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
-import { mumbai } from "@/libraries/contractAddresses";
+import { goerli, mumbai } from "@/libraries/contractAddresses";
 import registryAbi from "/libraries/contractABIs/FileRegistry.json";
 import apeTokenAbi from "@/libraries/contractABIs/ApeToken.json";
 import { Skeleton } from "@mui/material";
@@ -51,7 +51,7 @@ const LatestFiles = ({ type }) => {
           setApeToken(apeToken);
 
           // Create a new instance of the contract
-          const fileRegistry = new ethers.Contract(mumbai.Registry, registryAbi, provider.getSigner());
+          const fileRegistry = new ethers.Contract(goerli.Registry, registryAbi, provider.getSigner());
           setFileRegistry(fileRegistry);
         } catch (error) {
           console.error(error);
@@ -120,25 +120,25 @@ const LatestFiles = ({ type }) => {
         const signer = provider.getSigner();
         const walletAddress = await signer.getAddress();
         console.log(`Now minting ${qty} token/s for FileID ${selectedFile.fileId}`);
-  
+
         // Calculate the total payment amount
         const totalPrice = qty * selectedFile.filePrice;
-  
+
         // Check the Ape token balance of the user
         const balance = await apeToken.balanceOf(walletAddress);
         if (balance.lt(totalPrice)) {
           console.log("Insufficient Ape tokens");
           return;
         }
-  
+
         // Prompt user to approve the fileRegistry contract to spend Ape tokens on his behalf
         const approvalTx = await apeToken.approve(fileRegistry.address, totalPrice);
         await approvalTx.wait();
-  
+
         // Prompt the user to pay for the file and mint NFT with the specified quantity
         const transaction = await fileRegistry.payForFile(selectedFile.fileId, qty);
         await transaction.wait();
-  
+
         console.log(`${qty} file(s) minted successfully`);
       }
     } catch (error) {
