@@ -156,7 +156,7 @@ const LatestFiles = ({ type }) => {
         // Check the Ape token balance of the user
         const balance = await apeToken.balanceOf(walletAddress);
         if (balance.lt(totalPrice)) {
-          console.log("Insufficient Ape tokens");
+          console.log("Insufficient Ape tokens; Your balance is:", balance);
           return;
         }
 
@@ -295,17 +295,17 @@ const LatestFiles = ({ type }) => {
                 </div>
                 <div className="flex items-center justify-between border rounded-md">
                   <input className="w-full h-full px-4 py-3 text-sm text-gray-600 rounded-l-md" type="number" placeholder="Insert Token Quantity" value={qty} onChange={(e) => setQty(e.target.value)} />
-                  <button className="flex-1 px-4 py-3 text-white bg-orange-600 outline-none rounded-r-md ring-offset-2 ring-orange-600 focus:ring-2"
+                  <button className="flex-1 px-4 py-3 text-white bg-orange-600 outline-none ring-offset-2 ring-orange-600 focus:ring-2"
                     onClick={handleApproval}
                   >
-                  ALLOW SPEND
+                    ALLOW SPEND
                   </button>
                   <button
-                  className="flex-1 px-4 py-3 ml-4 text-white bg-green-600 outline-none rounded-md ring-offset-2 ring-green-600 focus:ring-2"
-                  onClick={handleMintNFT}
-                >
-                  MINT
-                </button>
+                    className="flex-1 text-white rounded-r-md bg-green-600 outline-none rounded-md ring-offset-2 ring-green-600 focus:ring-2"
+                    onClick={handleMintNFT}
+                  >
+                    MINT
+                  </button>
                 </div>
               </div>
             </div>
