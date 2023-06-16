@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./NFT.sol";
 import "./interface/IFileRegistry.sol";
 
@@ -186,63 +187,54 @@ contract FileRegistry is IFileRegistry, ReentrancyGuard, Ownable {
 
     // @dev Allows the user to pay for a file and mint tokens based on the specified token quantity and fileID
     function payForFile(uint256 _fileID, uint256 _tokenQuantity) public nonReentrant returns (bool) {
-    require(files[_fileID].uploader != address(0), "File does not exist");
-    require(!files[_fileID].isBannedByMod, "File is banned by moderators");
-    require(!files[_fileID].isDelistedByOwner, "File is delisted by uploader");
+        require(files[_fileID].uploader != address(0), "File does not exist");
+        require(!files[_fileID].isBannedByMod, "File is banned by moderators");
+        require(!files[_fileID].isDelistedByOwner, "File is delisted by uploader");
 
-    // Calculate the total price for the specified token quantity
-    uint256 totalPrice = (files[_fileID].filePrice + platformFee) * _tokenQuantity;
+        // Calculate the total price for the specified token quantity
+        uint256 totalPrice = (files[_fileID].filePrice + platformFee) * _tokenQuantity;
 
-    // Makes sure that msg.sender has enough APE balance to make the transaction
-    require(apeToken.balanceOf(msg.sender) >= totalPrice, "Insufficient tokens");
+        // Makes sure that msg.sender has enough APE balance to make the transaction
+        require(apeToken.balanceOf(msg.sender) >= totalPrice, "Insufficient tokens");
 
-    // Transfer APE tokens from msg.sender to the contract. I used this syntax for max security
-    // will revert if transfer returns false
-    (bool success, bytes memory data) = address(apeToken).call(
-        abi.encodeWithSelector(
-            apeToken.transferFrom.selector,
-            msg.sender,
-            address(this),
-            totalPrice
-        )
-    );
-    require(success && (data.length == 0 || abi.decode(data, (bool))), "Token transfer failed");
+        // Transfer APE tokens from msg.sender to the contract. I used this syntax for max security
+        // will revert if transfer returns false
+        (bool success, bytes memory data) = address(apeToken).call(
+            abi.encodeWithSelector(apeToken.transferFrom.selector, msg.sender, address(this), totalPrice)
+        );
+        require(success && (data.length == 0 || abi.decode(data, (bool))), "Token transfer failed");
 
-    // Calculate the payment for each token
-    uint256 paymentPerToken = files[_fileID].filePrice;
+        // Calculate the payment for each token
+        uint256 paymentPerToken = files[_fileID].filePrice;
 
-    // Transfer payment in APE tokens from the contract to the uploader
-    (success, data) = address(apeToken).call(
-        abi.encodeWithSelector(
-            apeToken.transfer.selector,
-            files[_fileID].uploader,
-            paymentPerToken * _tokenQuantity
-        )
-    );
-    require(success && (data.length == 0 || abi.decode(data, (bool))), "Token transfer failed");
+        // Transfer payment in APE tokens from the contract to the uploader
+        (success, data) = address(apeToken).call(
+            abi.encodeWithSelector(
+                apeToken.transfer.selector,
+                files[_fileID].uploader,
+                paymentPerToken * _tokenQuantity
+            )
+        );
+        require(success && (data.length == 0 || abi.decode(data, (bool))), "Token transfer failed");
 
-    // Transfer platformFee in APE tokens from the contract to the owner
-    (success, data) = address(apeToken).call(
-        abi.encodeWithSelector(
-            apeToken.transfer.selector,
-            owner(),
-            platformFee * _tokenQuantity
-        )
-    );
-    require(success && (data.length == 0 || abi.decode(data, (bool))), "Token transfer failed");
+        // Transfer platformFee in APE tokens from the contract to the owner
+        (success, data) = address(apeToken).call(
+            abi.encodeWithSelector(apeToken.transfer.selector, owner(), platformFee * _tokenQuantity)
+        );
+        require(success && (data.length == 0 || abi.decode(data, (bool))), "Token transfer failed");
 
-    for (uint256 i = 0; i < _tokenQuantity; ++i) {
-        // Mints token to msg.sender
-        uint256 newTokenId = token.mintToken(_fileID, msg.sender, files[_fileID].fileType);
+        for (uint256 i = 0; i < _tokenQuantity; ++i) {
+            // Mints token to msg.sender
+            uint256 newTokenId = token.mintToken(_fileID, msg.sender, files[_fileID].fileType);
 
-        // Maps fileID to tokenId
-        _tokenIds[_fileID] = newTokenId;
+            // Maps fileID to tokenId
+            _tokenIds[_fileID] = newTokenId;
 
-        emit FileTokenMinted(_fileID, payable(msg.sender));
+            emit FileTokenMinted(_fileID, payable(msg.sender));
+        }
+
+        return true;
     }
-
-    return true;
-}
 
     // @dev moderators ban/unban a file
     function banFile(uint256 _fileId, bool _isBanned) public onlyMod {
@@ -375,6 +367,10 @@ contract FileRegistry is IFileRegistry, ReentrancyGuard, Ownable {
 
     function getTokenAddress() public view returns (address) {
         return address(token);
+    }
+
+    function getCurrencyAddress() public view returns (address) {
+        return address(apeToken);
     }
 
     function getTokenIdByFileId(uint256 fileId) public view returns (uint256) {
