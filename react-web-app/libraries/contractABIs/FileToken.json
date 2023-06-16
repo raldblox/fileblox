@@ -160,6 +160,27 @@
   },
   {
     "inputs": [
+      { "internalType": "string", "name": "fileType", "type": "string" },
+      { "internalType": "string", "name": "fileDescription", "type": "string" },
+      { "internalType": "uint256", "name": "fileSize", "type": "uint256" },
+      { "internalType": "uint256", "name": "filePrice", "type": "uint256" }
+    ],
+    "name": "generateAttributes",
+    "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "fileId", "type": "uint256" }
+    ],
+    "name": "generateImage",
+    "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
       { "internalType": "uint256", "name": "tokenId", "type": "uint256" }
     ],
     "name": "getApproved",
