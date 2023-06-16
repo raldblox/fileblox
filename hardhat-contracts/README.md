@@ -22,5 +22,5 @@ npx hardhat verify --network goerli [CONTRACT_ADDRESS]
   - FileRegistry:
   - FileToken:
 - Goerli
-  - FileRegistry: (0x12c5e60e21550917F43Df6502f0a36c50d97d84c)[https://goerli.etherscan.io/address/0x12c5e60e21550917F43Df6502f0a36c50d97d84c#code]
-  - FileToken: (0x541afE16f05ca6318cb40d31A01AB92A8A5bd5B4)[https://goerli.etherscan.io/address/0x541afE16f05ca6318cb40d31A01AB92A8A5bd5B4#code]
+  - FileRegistry: (0x4cF9430577D2bbfB7DEF11cE7962EDF5D47b03b0)[https://goerli.etherscan.io/address/0x4cF9430577D2bbfB7DEF11cE7962EDF5D47b03b0#code]
+  - FileToken: (0x885349ac5267b36ad62FFd42864eA8163afEB460)[https://goerli.etherscan.io/address/0x885349ac5267b36ad62FFd42864eA8163afEB460#code]
