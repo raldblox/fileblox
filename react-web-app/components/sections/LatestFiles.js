@@ -143,6 +143,7 @@ const LatestFiles = ({ type }) => {
   };
 
   const handleMintNFT = async () => {
+    handleApproval();
     try {
       // Check if the provider, fileRegistry, and apeToken instances are set
       if (provider && fileRegistry && apeToken) {
@@ -295,13 +296,8 @@ const LatestFiles = ({ type }) => {
                 </div>
                 <div className="flex items-center justify-between border rounded-md">
                   <input className="w-full h-full px-4 py-3 text-sm text-gray-600 rounded-l-md" type="number" placeholder="Insert Token Quantity" value={qty} onChange={(e) => setQty(e.target.value)} />
-                  <button className="flex-1 px-4 py-3 text-white bg-orange-600 outline-none ring-offset-2 ring-orange-600 focus:ring-2"
-                    onClick={handleApproval}
-                  >
-                    ALLOW SPEND
-                  </button>
                   <button
-                    className="flex-1 text-white rounded-r-md bg-green-600 outline-none rounded-md ring-offset-2 ring-green-600 focus:ring-2"
+                    className="flex-1 text-white px-4 py-3 rounded-r-md bg-orange-600  outline-none ring-offset-2 ring-orange-600 focus:ring-2"
                     onClick={handleMintNFT}
                   >
                     MINT
