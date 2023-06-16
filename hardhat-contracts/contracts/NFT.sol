@@ -19,8 +19,8 @@ contract NFT is ERC721URIStorage {
 
     event TokenMinted(uint256 indexed tokenId, uint256 fileId, address registryAddress);
 
-    constructor(string memory _tokenName, string memory _tokenSymbol) ERC721(_tokenName, _tokenSymbol) {
-        registryAddress = msg.sender;
+    constructor(string memory _tokenName, string memory _tokenSymbol, address _registryAddress) ERC721(_tokenName, _tokenSymbol) {
+        registryAddress = _registryAddress;
     }
 
     // Modifier to check that the caller is the File Registry Contract
