@@ -81,7 +81,7 @@ contract NFT is ERC721URIStorage {
                                 fileImage_,
                                 '", "attributes": [',
                                 fileAttributes_,
-                                "],}"
+                                "]}"
                             )
                         )
                     )
@@ -116,7 +116,7 @@ contract NFT is ERC721URIStorage {
             abi.encodePacked(
                 '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">',
                 '<text x="50%" y="45%" text-anchor="middle" dominant-baseline="middle" font-size="24" font-family="Arial" font-weight="bold" fill="#F36E31">FileBlox</text>',
-                '<text x="50%" y="55%" text-anchor="middle" dominant-baseline="middle" font-size="12" font-family="Arial" font-weight="bold" fill="#5b5b5b">',
+                '<text x="50%" y="55%" text-anchor="middle" dominant-baseline="middle" font-size="12" font-family="Arial" font-weight="bold" fill="#5b5b5b">FileID#',
                 Strings.toString(_fileIds[fileId]),
                 "</text></svg>"
             )
