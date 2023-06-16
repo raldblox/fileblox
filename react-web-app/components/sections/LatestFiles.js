@@ -47,7 +47,7 @@ const LatestFiles = ({ type }) => {
           setProvider(provider);
 
           // Create a new instance of the ApeToken contract
-          const apeToken = new ethers.Contract(process.env.ERC20_ADDRESS, apeTokenAbi, signer);
+          const apeToken = new ethers.Contract("0x328507DC29C95c170B56a1b3A758eB7a9E73455c", apeTokenAbi, provider.getSigner());
           setApeToken(apeToken);
 
           // Create a new instance of the contract
