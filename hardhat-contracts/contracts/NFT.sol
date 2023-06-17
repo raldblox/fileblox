@@ -145,19 +145,42 @@ contract NFT is ERC721URIStorage {
     }
 
     function getTokensOwnedByAddress(address _address) public view returns (uint256[] memory) {
-        uint256 numberOfExistingTokens = _tokenIds.current();
         uint256 numberOfTokensOwned = balanceOf(_address);
         uint256[] memory ownedTokenIds = new uint256[](numberOfTokensOwned);
 
         uint256 currentIndex = 0;
-        for (uint256 i = 0; i < numberOfExistingTokens; i++) {
-            uint256 tokenId = i + 1;
-            if (ownerOf(tokenId) != _address) continue;
-            ownedTokenIds[currentIndex] = tokenId;
-            currentIndex += 1;
+        for (uint256 i = 0; i < _tokenIds.current(); i++) {
+            uint256 tokenId = i;
+            if (ownerOf(tokenId) == _address) {
+                ownedTokenIds[currentIndex] = tokenId;
+                currentIndex++;
+            }
         }
 
         return ownedTokenIds;
+    }
+
+    function getTokensCreatedByAddress(address _address) public view returns (uint256[] memory) {
+        uint256 numberOfTokensCreated = 0;
+
+        for (uint256 i = 0; i < _tokenIds.current(); i++) {
+            uint256 tokenId = i;
+            if (_creators[tokenId] == _address) {
+                numberOfTokensCreated++;
+            }
+        }
+
+        uint256[] memory createdTokenIds = new uint256[](numberOfTokensCreated);
+        uint256 currentIndex = 0;
+        for (uint256 i = 0; i < _tokenIds.current(); i++) {
+            uint256 tokenId = i;
+            if (_creators[tokenId] == _address) {
+                createdTokenIds[currentIndex] = tokenId;
+                currentIndex++;
+            }
+        }
+
+        return createdTokenIds;
     }
 
     function getTokenCreatorById(uint256 tokenId) external view returns (address) {
@@ -166,27 +189,5 @@ contract NFT is ERC721URIStorage {
 
     function getFileIdByTokenId(uint256 tokenId) external view returns (uint256) {
         return _fileIds[tokenId];
-    }
-
-    function getTokensCreatedByAddress(address _address) public view returns (uint256[] memory) {
-        uint256 numberOfExistingTokens = _tokenIds.current();
-        uint256 numberOfTokensCreated = 0;
-
-        for (uint256 i = 0; i < numberOfExistingTokens; i++) {
-            uint256 tokenId = i + 1;
-            if (_creators[tokenId] != _address) continue;
-            numberOfTokensCreated += 1;
-        }
-
-        uint256[] memory createdTokenIds = new uint256[](numberOfTokensCreated);
-        uint256 currentIndex = 0;
-        for (uint256 i = 0; i < numberOfExistingTokens; i++) {
-            uint256 tokenId = i + 1;
-            if (_creators[tokenId] != _address) continue;
-            createdTokenIds[currentIndex] = tokenId;
-            currentIndex += 1;
-        }
-
-        return createdTokenIds;
     }
 }
