@@ -108,7 +108,7 @@ contract FileRegistry is IFileRegistry, ReentrancyGuard, Ownable {
             newFileId,
             _filePath,
             _fileSize,
-            _filePriceinWei,
+            _filePriceInWei,
             _fileType,
             _fileName,
             _fileDescription,
@@ -136,6 +136,7 @@ contract FileRegistry is IFileRegistry, ReentrancyGuard, Ownable {
             _fileDescription,
             payable(msg.sender)
         );
+        return newFileId;
     }
 
     function updateFile(
@@ -160,13 +161,13 @@ contract FileRegistry is IFileRegistry, ReentrancyGuard, Ownable {
         File storage file = files[_fileId];
 
         // Convert the file price from ethers to wei
-        uint256 _filePriceinWei = _filePrice * 1 ether;
+        uint256 _filePriceInWei = _filePrice * 1 ether;
 
         // Update the file information
         file.filePath = _filePath;
         file.fileName = _fileName;
         file.fileSize = _fileSize;
-        file.filePrice = _filePriceinWei;
+        file.filePrice = _filePriceInWei;
         file.fileType = _fileType;
         file.fileDescription = _fileDescription;
 
