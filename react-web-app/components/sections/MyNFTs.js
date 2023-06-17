@@ -91,19 +91,36 @@ const MyTokens = () => {
     fetchTokens();
   }, [nftContract]);
 
-  const decryptURL = async (url) => {
-    handleNextStep(2);
-    const encryptionKey = process.env.ENCRYPTION_KEY;
-    const decryptedURL = CryptoJS.AES.decrypt(url, encryptionKey).toString();
-    return decryptedURL;
-  };
-
-  const handleDownload = (fileId) => {
-    // Implement the logic to download the file with the given fileId
-    // You can use the file ID to retrieve the file from the server or IPFS, depending on your setup
-    // For example:
-    // const fileUrl = `https://your-file-server.com/files/${fileId}`;
-    // window.open(fileUrl);
+  const handleDownload = async (fileId) => {
+    try {
+      // Fetch the token metadata for the file
+      const tokenUri = await nftContract.tokenURI(fileId);
+      const base64String = tokenUri.split(',')[1]; // Extract the base64-encoded string from the URI
+      let jsonString;
+  
+      if (typeof window !== 'undefined' && typeof window.atob === 'function') {
+        jsonString = window.atob(base64String); // Decode using window.atob in the browser
+      } else {
+        const buffer = Buffer.from(base64String, 'base64'); // Decode using Buffer in Node.js
+        jsonString = buffer.toString('utf-8');
+      }
+  
+      const tokenMetadata = JSON.parse(jsonString);
+  
+      // Decrypt the URL
+      const encryptionKey = process.env.ENCRYPTION_KEY; // Replace with your encryption key
+      const decryptedURL = CryptoJS.AES.decrypt(tokenMetadata.encryptedURL, encryptionKey).toString(CryptoJS.enc.Utf8);
+  
+      // Initiate the file download
+      const link = document.createElement('a');
+      link.href = decryptedURL;
+      link.setAttribute('download', ''); // Set the "download" attribute to force download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error downloading the file:', error);
+    }
   };
 
   return (
@@ -151,9 +168,9 @@ const MyTokens = () => {
                   <td className="pr-6 py-4 whitespace-nowrap">{item.price}$APE</td>
                   <td className="pr-6 py-4 whitespace-nowrap">{item.uploader}</td>
                   <td className="text-right whitespace-nowrap">
-                    <button onClick={handleDownload(item.fileId)} className="py-1.5 px-3 text-gray-600 hover:text-gray-500 duration-150 hover:bg-gray-50 border rounded-lg">
-                      Download
-                    </button>
+                  <button onClick={() => handleDownload(item.fileId)} className="py-1.5 px-3 text-gray-600 hover:text-gray-500 duration-150 hover:bg-gray-50 border rounded-lg">
+                  Download
+                  </button>
                   </td>
                 </tr>
               ))
