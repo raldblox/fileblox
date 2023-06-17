@@ -86,7 +86,7 @@ const LatestFiles = ({ type }) => {
               fileId: fileId,
               filePath: fileData[0],
               fileSize: fileData[1].toNumber(),
-              filePrice: fileData[2].toNumber(),
+              filePrice: fileData[2].div(10**18).toNumber(),
               fileType: fileData[3],
               fileName: fileData[4],
               fileDescription: fileData[5],
