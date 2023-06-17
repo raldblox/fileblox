@@ -1,13 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { ethers } from "ethers";
 import CryptoJS from "crypto-js";
 import nftAbi from "/libraries/contractABIs/FileToken.json";
 import { goerli } from "@/libraries/contractAddresses";
+import { Context } from "@/context";
+import Link from "next/link";
 
 const MyTokens = () => {
+  const { connectedWallet } = useContext(Context)
   const [provider, setProvider] = useState(null);
   const [nftContract, setNFTContract] = useState(null);
-  const [tokens, setTokens] = useState([]);
+  const [ownedTokens, setOwnedTokens] = useState([]);
+  const [createdTokens, setCreatedTokens] = useState([]);
 
   useEffect(() => {
     const initProvider = async () => {
@@ -38,14 +42,14 @@ const MyTokens = () => {
     const fetchTokens = async () => {
       if (nftContract) {
         try {
-          console.log(nftContract)
           // Get the tokens owned by the user
-          const tokenIds = await nftContract.getTokensOwnedByMe();
-          console.log(tokenIds)
-
+          const ownedTokens = await nftContract.getTokensOwnedByAddress(connectedWallet);
+          const createdTokens = await nftContract.getTokensCreatedByAddress(connectedWallet);
+          console.log(`Owned Tokens: ${ownedTokens.length}; Created Tokens: ${createdTokens.length}`);
+          const tokenData = [...ownedTokens, ...createdTokens];
 
           // Fetch token details for each token ID
-          const tokenPromises = tokenIds.map(async (tokenId) => {
+          const tokenPromises = tokenData.map(async (tokenId) => {
             const tokenUri = await nftContract.tokenURI(tokenId);
             const base64String = tokenUri.split(',')[1]; // Extract the base64-encoded string from the URI
             let jsonString;
@@ -71,8 +75,13 @@ const MyTokens = () => {
           // Wait for all token details to be fetched
           const fetchedTokens = await Promise.all(tokenPromises);
 
+          // Separate ownedTokens and createdTokens
+          const ownedTokensData = fetchedTokens.filter((token) => ownedTokens.includes(token.tokenId));
+          const createdTokensData = fetchedTokens.filter((token) => createdTokens.includes(token.tokenId));
+
           // Set the state with the fetched tokens
-          setTokens(fetchedTokens);
+          setOwnedTokens(ownedTokensData);
+          setCreatedTokens(createdTokensData);
         } catch (error) {
           console.error(error);
         }
@@ -98,8 +107,23 @@ const MyTokens = () => {
   };
 
   return (
-    <div>
-      <div className="mt-12 relative h-max overflow-auto">
+    <div className="grid gap-10">
+      <div className="items-start justify-between md:flex">
+        <div className="max-w-lg">
+          <h3 className="text-gray-800 text-xl font-bold sm:text-2xl">
+            Owned Tokens
+          </h3>
+        </div>
+        <div className="mt-3 md:mt-0">
+          <Link
+            href="/marketplace/upload"
+            className="inline-block px-4 py-2 text-white duration-150 font-medium bg-orange-600 rounded-lg hover:bg-orange-500 active:bg-orange-700 md:text-sm"
+          >
+            Upload file
+          </Link>
+        </div>
+      </div>
+      <div className="mt-12 relative h-max overflow-auto min-h-[50vh]">
         <table className="w-full table-auto text-sm text-left">
           <thead className="text-gray-600 font-medium border-b">
             <tr>
@@ -113,7 +137,52 @@ const MyTokens = () => {
           </thead>
           <tbody className="text-gray-600 divide-y">
             {
-              tokens.map((item, idx) => (
+              ownedTokens.map((item, idx) => (
+                <tr key={idx}>
+                  <td className="pr-6 py-4 whitespace-nowrap">{item.tokenID}</td>
+                  <td className="pr-6 py-4 whitespace-nowrap">{item.fileName}</td>
+                  <td className="pr-6 py-4 whitespace-nowrap">{item.size}KB</td>
+                  <td className="pr-6 py-4 whitespace-nowrap">
+                    <span className={`px-3 py-2 rounded-full font-semibold text-xs ${item.status == "Active" ? "text-green-600 bg-green-50" : "text-blue-600 bg-blue-50"}`}>
+                      {item.FileId}
+                    </span>
+                  </td>
+
+                  <td className="pr-6 py-4 whitespace-nowrap">{item.price}$APE</td>
+                  <td className="pr-6 py-4 whitespace-nowrap">{item.uploader}</td>
+                  <td className="text-right whitespace-nowrap">
+                    <button onClick={handleDownload(item.fileId)} className="py-1.5 px-3 text-gray-600 hover:text-gray-500 duration-150 hover:bg-gray-50 border rounded-lg">
+                      Download
+                    </button>
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <div className="items-start justify-between md:flex mt-10 ">
+        <div className="max-w-lg">
+          <h3 className="text-gray-800 text-xl font-bold sm:text-2xl">
+            Created Tokens
+          </h3>
+        </div>
+      </div>
+      <div className="mt-12 relative h-max overflow-auto min-h-[50vh]">
+        <table className="w-full table-auto text-sm text-left">
+          <thead className="text-gray-600 font-medium border-b">
+            <tr>
+              <th className="py-3 pr-6">Token ID</th>
+              <th className="py-3 pr-6">File Name</th>
+              <th className="py-3 pr-6">File Size</th>
+              <th className="py-3 pr-6">File ID</th>
+              <th className="py-3 pr-6">Price</th>
+              <th className="py-3 pr-6">Uploader</th>
+            </tr>
+          </thead>
+          <tbody className="text-gray-600 divide-y">
+            {
+              createdTokens.map((item, idx) => (
                 <tr key={idx}>
                   <td className="pr-6 py-4 whitespace-nowrap">{item.tokenID}</td>
                   <td className="pr-6 py-4 whitespace-nowrap">{item.fileName}</td>
