@@ -101,11 +101,14 @@ contract FileRegistry is IFileRegistry, ReentrancyGuard, Ownable {
         uint256 newFileId = _fileIds.current();
         _fileIds.increment();
 
+        // Convert the file price from ethers to wei
+        uint256 _filePriceInWei = _filePrice * 1 ether;
+
         files[newFileId] = File(
             newFileId,
             _filePath,
             _fileSize,
-            _filePrice,
+            _filePriceinWei,
             _fileType,
             _fileName,
             _fileDescription,
@@ -156,11 +159,14 @@ contract FileRegistry is IFileRegistry, ReentrancyGuard, Ownable {
 
         File storage file = files[_fileId];
 
+        // Convert the file price from ethers to wei
+        uint256 _filePriceinWei = _filePrice * 1 ether;
+
         // Update the file information
         file.filePath = _filePath;
         file.fileName = _fileName;
         file.fileSize = _fileSize;
-        file.filePrice = _filePrice;
+        file.filePrice = _filePriceinWei;
         file.fileType = _fileType;
         file.fileDescription = _fileDescription;
 
