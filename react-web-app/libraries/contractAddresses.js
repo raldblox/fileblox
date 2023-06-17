@@ -9,7 +9,7 @@ export const mumbai = {
 };
 
 export const goerli = {
-    Registry: "0x26fcbdf8AFdd3dD2F53dB1e35d00fF5aE82d37e0",
-    Token: "0xA7b74b981fD07D2aFF8ac0C8f578De6c0520c6B6",
+    Registry: "0x32f6B30a406723da30Fb1233D827F245d1CF9A30",
+    Token: "0x503c0D08C3c31CdC9f2FF49E0E29d8fEF0673399 ",
 };
 
