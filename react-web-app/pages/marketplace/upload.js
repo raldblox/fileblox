@@ -156,6 +156,7 @@ export default () => {
             const receipt = await tx.wait();
             if (receipt.status === 1) {
                 setTxStatus("Successfully recorded on the blockchain.");
+                handleNextStep(4);
             } else {
                 setErrorMessage("Failed to record file on the blockchain.");
             }
