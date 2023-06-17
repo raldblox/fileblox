@@ -69,7 +69,7 @@ const index = () => {
 
         // Wait for all token details to be fetched
         const fetchedTokens = await Promise.all(tokenPromises);
-        console.log(fetchedTokens)
+
 
         // Separate ownedTokens and createdTokens
         const ownedTokensData = fetchedTokens.filter((token) => ownedTokens.includes(token.tokenId));
@@ -200,14 +200,14 @@ const index = () => {
                                 <tr key={idx}>
                                     <td className="py-4 pr-6 whitespace-nowrap">{Number(item.tokenId).toString()}</td>
                                     <td className="py-4 pr-6 whitespace-nowrap">{item.fileName}</td>
-                                    <td className="py-4 pr-6 whitespace-nowrap">{Number(item.Filesize).toString()} KB</td>
+                                    <td className="py-4 pr-6 whitespace-nowrap">{Number(item.fileSize).toString()} KB</td>
                                     <td className="py-4 pr-6 whitespace-nowrap">
                                         <span className={`px-3 py-2 rounded-full font-semibold text-xs ${item.status == "Active" ? "text-green-600 bg-green-50" : "text-blue-600 bg-blue-50"}`}>
                                             {Number(item.FileId).toString()}
                                         </span>
                                     </td>
 
-                                    <td className="py-4 pr-6 whitespace-nowrap">{Number(item.Fileprice).toString()} $APE</td>
+                                    <td className="py-4 pr-6 whitespace-nowrap">{Number(item.filePrice).toString()} $APE</td>
                                     <td className="text-right whitespace-nowrap">
                                         <button onClick={handleDownload(item.fileId)} className="py-1.5 px-3 text-gray-600 hover:text-gray-500 duration-150 hover:bg-gray-50 border rounded-lg">
                                             Download
