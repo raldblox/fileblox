@@ -12,67 +12,83 @@ const index = () => {
     const [createdTokens, setCreatedTokens] = useState([]);
 
     const fetchTokens = async () => {
-        const { ethereum } = window;
-        if (ethereum) {
-            try {
-                const provider = new ethers.providers.Web3Provider(ethereum);
-                const nftContract = new ethers.Contract(
-                    goerli.Token,
-                    nftAbi,
-                    provider.getSigner()
-                );
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        console.log("Token: ", goerli.Token);
+        const nftContract = new ethers.Contract(
+            goerli.Token,
+            nftAbi,
+            provider.getSigner()
+        );
 
-                // Get the tokens owned by the user
-                const ownedTokens = await nftContract.getTokensOwnedByAddress(connectedWallet);
-                const createdTokens = await nftContract.getTokensCreatedByAddress(connectedWallet);
-                const tokenData = [...ownedTokens, ...createdTokens];
+        const balance = await nftContract.balanceOf(connectedWallet);
 
-                // Fetch token details for each token ID
-                const tokenPromises = tokenData.map(async (tokenId) => {
-                    const tokenUri = await nftContract.tokenURI(tokenId);
-                    const base64String = tokenUri.split(',')[1]; // Extract the base64-encoded string from the URI
-                    let jsonString;
-
-                    if (typeof window !== 'undefined' && typeof window.atob === 'function') {
-                        jsonString = window.atob(base64String); // Decode using window.atob in the browser
-                    } else {
-                        const buffer = Buffer.from(base64String, 'base64'); // Decode using Buffer in Node.js
-                        jsonString = buffer.toString('utf-8');
-                    }
-
-                    const tokenMetadata = JSON.parse(jsonString);
-                    return {
-                        tokenId,
-                        fileName: tokenMetadata.name,
-                        fileId: tokenMetadata.fileId,
-                        filePrice: tokenMetadata.filePrice,
-                        uploader: tokenMetadata.uploader,
-                    };
-                });
+        // Get the tokens owned by the user
+        const ownedTokens = await nftContract.getTokensOwnedByAddress(connectedWallet);
+        const createdTokens = await nftContract.getTokensCreatedByAddress(connectedWallet);
+        const tokenData = [...new Set([...ownedTokens, ...createdTokens])];
 
 
-                // Wait for all token details to be fetched
-                const fetchedTokens = await Promise.all(tokenPromises);
+        // Fetch token details for each token ID
+        const tokenPromises = tokenData.map(async (tokenId) => {
+            const tokenUri = await nftContract.tokenURI(tokenId);
+            const fileId = await nftContract.getFileIdByTokenId(tokenId);
+            const base64String = tokenUri.split(',')[1]; // Extract the base64-encoded string from the URI
+            let jsonString;
+            let filePrice;
+            let fileSize;
 
-                // Separate ownedTokens and createdTokens
-                const ownedTokensData = fetchedTokens.filter((token) => ownedTokens.includes(token.tokenId));
-                const createdTokensData = fetchedTokens.filter((token) => createdTokens.includes(token.tokenId));
-
-                // Set the state with the fetched tokens
-                setOwnedTokens(ownedTokensData);
-                setCreatedTokens(createdTokensData);
-            } catch (error) {
-                console.error(error);
+            if (typeof window !== 'undefined' && typeof window.atob === 'function') {
+                jsonString = window.atob(base64String); // Decode using window.atob in the browser
+            } else {
+                const buffer = Buffer.from(base64String, 'base64'); // Decode using Buffer in Node.js
+                jsonString = buffer.toString('utf-8');
             }
-        }
-    };
+
+            const tokenMetadata = JSON.parse(jsonString);
+
+            // Check if the  attribute exists in the tokenMetadata
+            if (tokenMetadata.attributes) {
+                const filePriceAttribute = tokenMetadata.attributes.find(attribute => attribute.trait_type === "File Price");
+                const fileSizeAttribute = tokenMetadata.attributes.find(attribute => attribute.trait_type === "File Size");
+                if (filePriceAttribute) {
+                    filePrice = filePriceAttribute.value;
+                    fileSize = fileSizeAttribute.value;
+                }
+            }
+
+            const filePriceFloat = filePrice ? parseFloat(ethers.utils.formatEther(ethers.BigNumber.from(filePrice))) : 0;
+
+            return {
+                tokenId: tokenId,
+                fileName: tokenMetadata.name,
+                fileId: fileId,
+                fileSize: fileSize || 0,
+                filePrice: filePriceFloat,
+            };
+        });
+
+        // Wait for all token details to be fetched
+        const fetchedTokens = await Promise.all(tokenPromises);
+        console.log(fetchedTokens)
+
+        // Separate ownedTokens and createdTokens
+        const ownedTokensData = fetchedTokens.filter((token) => ownedTokens.includes(token.tokenId));
+        console.log("Owned", ownedTokensData)
+        const createdTokensData = fetchedTokens.filter((token) => createdTokens.includes(token.tokenId));
+        console.log("Created", createdTokensData)
+
+        // Set the state with the fetched tokens
+        setOwnedTokens(ownedTokensData);
+        setCreatedTokens(createdTokensData);
+
+    }
 
     useEffect(() => {
-        if (!connectedWallet) {
+        if (connectedWallet) {
+            fetchTokens();
+        } else {
             connectWallet()
-            return;
         }
-        fetchTokens();
     }, [connectedWallet]);
 
     const handleDownload = async (fileId) => {
@@ -133,24 +149,22 @@ const index = () => {
                             <th className="py-3 pr-6">File Size</th>
                             <th className="py-3 pr-6">File ID</th>
                             <th className="py-3 pr-6">Price</th>
-                            <th className="py-3 pr-6">Uploader</th>
                         </tr>
                     </thead>
                     <tbody className="text-gray-600 divide-y">
                         {
                             ownedTokens.map((item, idx) => (
                                 <tr key={idx}>
-                                    <td className="py-4 pr-6 whitespace-nowrap">{item.tokenID}</td>
+                                    <td className="py-4 pr-6 whitespace-nowrap">{Number(item.tokenId).toString()}</td>
                                     <td className="py-4 pr-6 whitespace-nowrap">{item.fileName}</td>
-                                    <td className="py-4 pr-6 whitespace-nowrap">{item.size}KB</td>
+                                    <td className="py-4 pr-6 whitespace-nowrap">{Number(item.fileSize).toString()} KB</td>
                                     <td className="py-4 pr-6 whitespace-nowrap">
                                         <span className={`px-3 py-2 rounded-full font-semibold text-xs ${item.status == "Active" ? "text-green-600 bg-green-50" : "text-blue-600 bg-blue-50"}`}>
-                                            {item.FileId}
+                                            {Number(item.fileId).toString()}
                                         </span>
                                     </td>
 
-                                    <td className="py-4 pr-6 whitespace-nowrap">{item.price}$APE</td>
-                                    <td className="py-4 pr-6 whitespace-nowrap">{item.uploader}</td>
+                                    <td className="py-4 pr-6 whitespace-nowrap">{Number(item.filePrice).toString()} $APE</td>
                                     <td className="text-right whitespace-nowrap">
                                         <button onClick={() => handleDownload(item.fileId)} className="py-1.5 px-3 text-gray-600 hover:text-gray-500 duration-150 hover:bg-gray-50 border rounded-lg">
                                             Download
@@ -178,24 +192,22 @@ const index = () => {
                             <th className="py-3 pr-6">File Size</th>
                             <th className="py-3 pr-6">File ID</th>
                             <th className="py-3 pr-6">Price</th>
-                            <th className="py-3 pr-6">Uploader</th>
                         </tr>
                     </thead>
                     <tbody className="text-gray-600 divide-y">
                         {
                             createdTokens.map((item, idx) => (
                                 <tr key={idx}>
-                                    <td className="py-4 pr-6 whitespace-nowrap">{item.tokenID}</td>
+                                    <td className="py-4 pr-6 whitespace-nowrap">{Number(item.tokenId).toString()}</td>
                                     <td className="py-4 pr-6 whitespace-nowrap">{item.fileName}</td>
-                                    <td className="py-4 pr-6 whitespace-nowrap">{item.size}KB</td>
+                                    <td className="py-4 pr-6 whitespace-nowrap">{Number(item.Filesize).toString()} KB</td>
                                     <td className="py-4 pr-6 whitespace-nowrap">
                                         <span className={`px-3 py-2 rounded-full font-semibold text-xs ${item.status == "Active" ? "text-green-600 bg-green-50" : "text-blue-600 bg-blue-50"}`}>
-                                            {item.FileId}
+                                            {Number(item.FileId).toString()}
                                         </span>
                                     </td>
 
-                                    <td className="py-4 pr-6 whitespace-nowrap">{item.price}$APE</td>
-                                    <td className="py-4 pr-6 whitespace-nowrap">{item.uploader}</td>
+                                    <td className="py-4 pr-6 whitespace-nowrap">{Number(item.Fileprice).toString()} $APE</td>
                                     <td className="text-right whitespace-nowrap">
                                         <button onClick={handleDownload(item.fileId)} className="py-1.5 px-3 text-gray-600 hover:text-gray-500 duration-150 hover:bg-gray-50 border rounded-lg">
                                             Download
