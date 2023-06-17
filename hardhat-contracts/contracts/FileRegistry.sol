@@ -101,11 +101,14 @@ contract FileRegistry is IFileRegistry, ReentrancyGuard, Ownable {
         uint256 newFileId = _fileIds.current();
         _fileIds.increment();
 
+        // Convert the file price from ethers to wei
+        uint256 _filePriceInWei = _filePrice * 1 ether;
+
         files[newFileId] = File(
             newFileId,
             _filePath,
             _fileSize,
-            _filePrice,
+            _filePriceinWei,
             _fileType,
             _fileName,
             _fileDescription,
