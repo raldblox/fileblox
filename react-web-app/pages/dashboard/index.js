@@ -26,8 +26,8 @@ const index = () => {
             goerli.Registry,
             registryAbi,
             provider.getSigner()
-          );
-          setFileRegistryContract(fileRegistryContract);
+        );
+        setFileRegistryContract(fileRegistryContract);
 
         const balance = await nftContract.balanceOf(connectedWallet);
 
@@ -102,19 +102,39 @@ const index = () => {
 
     const handleDownload = async (fileId) => {
         try {
-            //Fetches filePath from fileId in the registry
+            // Fetch filePath from fileId in the registry
             const fileData = await fileRegistryContract.getFileDataByFileID(fileId);
             const filePath = fileData[0];
 
-            //Decrypts the filePath
+            // Decrypt the filePath
             const decryptedURL = CryptoJS.AES.decrypt(
-              filePath,
-              process.env.ENCRYPTION_KEY
+                filePath,
+                process.env.ENCRYPTION_KEY
             ).toString(CryptoJS.enc.Utf8);
+
+            // Extract the IPFS CID from the decrypted URL
+            const ipfsCID = decryptedURL.split('//')[1].split('/')[0];
+
+            // Construct the IPFS URL for the metadata file
+            const metadataURL = `https://cloudflare-ipfs.com/ipfs/${ipfsCID}/metadata.json`;
+
+            // Fetch the metadata file
+            const metadataResponse = await fetch(metadataURL);
+            const metadata = await metadataResponse.json();
+
+            // Access the file URL from the metadata
+            const fileURL = metadata.file;
+            const fileCID = fileURL.split('//')[1].split('/')[0];
+
+            // Extract the file extension from the file URL
+            const fileExtension = fileURL.split('.').pop();
+
+            // Construct the IPFS URL for file download
+            const fileDownloadURL = `https://cloudflare-ipfs.com/ipfs/${fileCID}/file.${fileExtension}`;
 
             // Initiate the file download
             const link = document.createElement('a');
-            link.href = decryptedURL;
+            link.href = fileDownloadURL;
             link.setAttribute('download', ''); // Set the "download" attribute to force download
             document.body.appendChild(link);
             link.click();
@@ -123,6 +143,8 @@ const index = () => {
             console.error('Error downloading the file:', error);
         }
     };
+
+
 
     return (
         <div className="max-w-screen-xl min-h-screen px-4 mx-auto md:px-8 py-14">
@@ -209,11 +231,6 @@ const index = () => {
                                     </td>
 
                                     <td className="py-4 pr-6 whitespace-nowrap">{Number(item.filePrice).toString()} $APE</td>
-                                    <td className="text-right whitespace-nowrap">
-                                        <button onClick={handleDownload(item.fileId)} className="py-1.5 px-3 text-gray-600 hover:text-gray-500 duration-150 hover:bg-gray-50 border rounded-lg">
-                                            Download
-                                        </button>
-                                    </td>
                                 </tr>
                             ))
                         }
