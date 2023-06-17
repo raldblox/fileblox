@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { ethers } from "ethers";
 import CryptoJS from "crypto-js";
 import nftAbi from "/libraries/contractABIs/FileToken.json";
+import registryAbi from "/libraries/contractABIs/FileRegistry.json";
 import { goerli } from "@/libraries/contractAddresses";
 import { Context } from "@/context";
 import Link from "next/link";
@@ -10,6 +11,7 @@ const index = () => {
     const { connectedWallet, connectWallet } = useContext(Context)
     const [ownedTokens, setOwnedTokens] = useState([]);
     const [createdTokens, setCreatedTokens] = useState([]);
+    const [fileRegistryContract, setFileRegistryContract] = useState(null);
 
     const fetchTokens = async () => {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -19,6 +21,13 @@ const index = () => {
             nftAbi,
             provider.getSigner()
         );
+
+        const fileRegistryContract = new ethers.Contract(
+            goerli.Registry,
+            registryAbi,
+            provider.getSigner()
+          );
+          setFileRegistryContract(fileRegistryContract);
 
         const balance = await nftContract.balanceOf(connectedWallet);
 
@@ -93,23 +102,15 @@ const index = () => {
 
     const handleDownload = async (fileId) => {
         try {
-            // Fetch the token metadata for the file
-            const tokenUri = await nftContract.tokenURI(fileId);
-            const base64String = tokenUri.split(',')[1]; // Extract the base64-encoded string from the URI
-            let jsonString;
+            //Fetches filePath from fileId in the registry
+            const fileData = await fileRegistryContract.getFileDataByFileID(fileId);
+            const filePath = fileData[0];
 
-            if (typeof window !== 'undefined' && typeof window.atob === 'function') {
-                jsonString = window.atob(base64String); // Decode using window.atob in the browser
-            } else {
-                const buffer = Buffer.from(base64String, 'base64'); // Decode using Buffer in Node.js
-                jsonString = buffer.toString('utf-8');
-            }
-
-            const tokenMetadata = JSON.parse(jsonString);
-
-            // Decrypt the URL
-            const encryptionKey = process.env.ENCRYPTION_KEY; // Replace with your encryption key
-            const decryptedURL = CryptoJS.AES.decrypt(tokenMetadata.encryptedURL, encryptionKey).toString(CryptoJS.enc.Utf8);
+            //Decrypts the filePath
+            const decryptedURL = CryptoJS.AES.decrypt(
+              filePath,
+              process.env.ENCRYPTION_KEY
+            ).toString(CryptoJS.enc.Utf8);
 
             // Initiate the file download
             const link = document.createElement('a');
