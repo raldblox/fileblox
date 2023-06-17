@@ -45,6 +45,25 @@ contract NFT is ERC721URIStorage {
         return newItemId;
     }
 
+    function contractURI() external view returns (string memory) {
+        string memory logo = generateImage(0);
+        return
+            string(
+                abi.encodePacked(
+                    "data:application/json;base64,",
+                    Base64.encode(
+                        bytes(
+                            abi.encodePacked(
+                                '{"name":"FileBlox Tokens", "description":"Protecting your digital creations.", "image": "',
+                                logo,
+                                '"}'
+                            )
+                        )
+                    )
+                )
+            );
+    }
+
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         require(_exists(tokenId), "Error: Nonexistent Token");
         uint256 fileId = _fileIds[tokenId];
@@ -111,7 +130,7 @@ contract NFT is ERC721URIStorage {
             );
     }
 
-    function generateImage(uint256 fileId) public view returns (string memory) {
+    function generateImage(uint256 fileId) internal view returns (string memory) {
         string memory fileImage_ = string(
             abi.encodePacked(
                 '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">',
@@ -125,15 +144,15 @@ contract NFT is ERC721URIStorage {
         return string(abi.encodePacked("data:image/svg+xml;base64,", Base64.encode(bytes(fileImage_))));
     }
 
-    function getTokensOwnedByMe() public view returns (uint256[] memory) {
+    function getTokensOwnedByAddress(address _address) public view returns (uint256[] memory) {
         uint256 numberOfExistingTokens = _tokenIds.current();
-        uint256 numberOfTokensOwned = balanceOf(msg.sender);
+        uint256 numberOfTokensOwned = balanceOf(_address);
         uint256[] memory ownedTokenIds = new uint256[](numberOfTokensOwned);
 
         uint256 currentIndex = 0;
         for (uint256 i = 0; i < numberOfExistingTokens; i++) {
             uint256 tokenId = i + 1;
-            if (ownerOf(tokenId) != msg.sender) continue;
+            if (ownerOf(tokenId) != _address) continue;
             ownedTokenIds[currentIndex] = tokenId;
             currentIndex += 1;
         }
@@ -149,13 +168,13 @@ contract NFT is ERC721URIStorage {
         return _fileIds[tokenId];
     }
 
-    function getTokensCreatedByMe() public view returns (uint256[] memory) {
+    function getTokensCreatedByAddress(address _address) public view returns (uint256[] memory) {
         uint256 numberOfExistingTokens = _tokenIds.current();
         uint256 numberOfTokensCreated = 0;
 
         for (uint256 i = 0; i < numberOfExistingTokens; i++) {
             uint256 tokenId = i + 1;
-            if (_creators[tokenId] != msg.sender) continue;
+            if (_creators[tokenId] != _address) continue;
             numberOfTokensCreated += 1;
         }
 
@@ -163,7 +182,7 @@ contract NFT is ERC721URIStorage {
         uint256 currentIndex = 0;
         for (uint256 i = 0; i < numberOfExistingTokens; i++) {
             uint256 tokenId = i + 1;
-            if (_creators[tokenId] != msg.sender) continue;
+            if (_creators[tokenId] != _address) continue;
             createdTokenIds[currentIndex] = tokenId;
             currentIndex += 1;
         }
