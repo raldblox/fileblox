@@ -81,12 +81,15 @@ const LatestFiles = ({ type }) => {
           // Fetch file details for the four most recent file IDs
           const filePromises = reversedFileIds.map(async (fileId) => {
             const fileData = await fileRegistry.getFileDataByFileID(fileId);
+            const filePriceInWei = fileData[2];
+            const filePriceInEther = ethers.utils.formatEther(filePriceInWei);
+            const filePrice = parseFloat(filePriceInEther);
 
             return {
               fileId: fileId,
               filePath: fileData[0],
               fileSize: fileData[1].toNumber(),
-              filePrice: fileData[2].div(10**18).toNumber(),
+              filePrice: filePrice,
               fileType: fileData[3],
               fileName: fileData[4],
               fileDescription: fileData[5],
@@ -297,7 +300,7 @@ const LatestFiles = ({ type }) => {
                 <div className="flex items-center justify-between border rounded-md">
                   <input className="w-full h-full px-4 py-3 text-sm text-gray-600 rounded-l-md" type="number" placeholder="Insert Token Quantity" value={qty} onChange={(e) => setQty(e.target.value)} />
                   <button
-                    className="flex-1 text-white px-4 py-3 rounded-r-md bg-orange-600  outline-none ring-offset-2 ring-orange-600 focus:ring-2"
+                    className="flex-1 px-4 py-3 text-white bg-orange-600 outline-none rounded-r-md ring-offset-2 ring-orange-600 focus:ring-2"
                     onClick={handleMintNFT}
                   >
                     MINT
