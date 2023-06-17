@@ -73,20 +73,6 @@ const MyTokens = () => {
     fetchTokens();
   }, []);
 
-<<<<<<< HEAD
-  const decryptURL = async (url) => {
-    const encryptionKey = process.env.ENCRYPTION_KEY;
-    const decryptedURL = CryptoJS.AES.decrypt(url, encryptionKey).toString();
-    return decryptedURL;
-  };
-
-  const handleDownload = (fileId) => {
-    // Implement the logic to download the file with the given fileId
-    // You can use the file ID to retrieve the file from the server or IPFS, depending on your setup
-    // For example:
-    // const fileUrl = `https://your-file-server.com/files/${fileId}`;
-    // window.open(fileUrl);
-=======
   useEffect(() => {
     const fetchTokens = async () => {
       if (nftContract) {
@@ -170,7 +156,6 @@ const MyTokens = () => {
     } catch (error) {
       console.error('Error downloading the file:', error);
     }
->>>>>>> b3540697e54771f9f5ad10303d86e2879f931420
   };
 
   return (
