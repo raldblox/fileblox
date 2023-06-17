@@ -8,36 +8,85 @@ import Link from "next/link";
 
 const MyTokens = () => {
   const { connectedWallet } = useContext(Context)
-  const [provider, setProvider] = useState(null);
-  const [nftContract, setNFTContract] = useState(null);
   const [ownedTokens, setOwnedTokens] = useState([]);
   const [createdTokens, setCreatedTokens] = useState([]);
 
-  useEffect(() => {
-    const initProvider = async () => {
-      if (window.ethereum) {
-        try {
-          // Request access to the user's MetaMask accounts
-          await window.ethereum.enable();
+  const fetchTokens = async () => {
+    const { ethereum } = window;
+    if (ethereum) {
+      try {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const nftContract = new ethers.Contract(
+          goerli.Registry,
+          nftAbi,
+          provider.getSigner()
+        );
 
-          // Create a new ethers provider using MetaMask's provider
-          const provider = new ethers.providers.Web3Provider(window.ethereum);
-          setProvider(provider);
+        console.log(`CA: ${goerli.Registry}`);
+        // Get the tokens owned by the user
+        const ownedTokens = await nftContract.getTokensOwnedByAddress(connectedWallet);
+        const createdTokens = await nftContract.getTokensCreatedByAddress(connectedWallet);
+        console.log(`Owned Tokens: ${ownedTokens.length}; Created Tokens: ${createdTokens.length}`);
+        const tokenData = [...ownedTokens, ...createdTokens];
 
-          // Create a new instance of the NFT contract
-          const nftContract = new ethers.Contract(goerli.Token, nftAbi, provider.getSigner());
-          setNFTContract(nftContract);
-        } catch (error) {
-          console.error(error);
-        }
-      } else {
-        console.error("Please install MetaMask to use this application.");
+        // Fetch token details for each token ID
+        const tokenPromises = tokenData.map(async (tokenId) => {
+          const tokenUri = await nftContract.tokenURI(tokenId);
+          const base64String = tokenUri.split(',')[1]; // Extract the base64-encoded string from the URI
+          let jsonString;
+
+          if (typeof window !== 'undefined' && typeof window.atob === 'function') {
+            jsonString = window.atob(base64String); // Decode using window.atob in the browser
+          } else {
+            const buffer = Buffer.from(base64String, 'base64'); // Decode using Buffer in Node.js
+            jsonString = buffer.toString('utf-8');
+          }
+
+          const tokenMetadata = JSON.parse(jsonString);
+          return {
+            tokenId,
+            fileName: tokenMetadata.name,
+            fileId: tokenMetadata.fileId,
+            filePrice: tokenMetadata.filePrice,
+            uploader: tokenMetadata.uploader,
+          };
+        });
+
+
+        // Wait for all token details to be fetched
+        const fetchedTokens = await Promise.all(tokenPromises);
+
+        // Separate ownedTokens and createdTokens
+        const ownedTokensData = fetchedTokens.filter((token) => ownedTokens.includes(token.tokenId));
+        const createdTokensData = fetchedTokens.filter((token) => createdTokens.includes(token.tokenId));
+
+        // Set the state with the fetched tokens
+        setOwnedTokens(ownedTokensData);
+        setCreatedTokens(createdTokensData);
+      } catch (error) {
+        console.error(error);
       }
-    };
+    }
+  };
 
-    initProvider();
+  useEffect(() => {
+    fetchTokens();
   }, []);
 
+<<<<<<< HEAD
+  const decryptURL = async (url) => {
+    const encryptionKey = process.env.ENCRYPTION_KEY;
+    const decryptedURL = CryptoJS.AES.decrypt(url, encryptionKey).toString();
+    return decryptedURL;
+  };
+
+  const handleDownload = (fileId) => {
+    // Implement the logic to download the file with the given fileId
+    // You can use the file ID to retrieve the file from the server or IPFS, depending on your setup
+    // For example:
+    // const fileUrl = `https://your-file-server.com/files/${fileId}`;
+    // window.open(fileUrl);
+=======
   useEffect(() => {
     const fetchTokens = async () => {
       if (nftContract) {
@@ -97,20 +146,20 @@ const MyTokens = () => {
       const tokenUri = await nftContract.tokenURI(fileId);
       const base64String = tokenUri.split(',')[1]; // Extract the base64-encoded string from the URI
       let jsonString;
-  
+
       if (typeof window !== 'undefined' && typeof window.atob === 'function') {
         jsonString = window.atob(base64String); // Decode using window.atob in the browser
       } else {
         const buffer = Buffer.from(base64String, 'base64'); // Decode using Buffer in Node.js
         jsonString = buffer.toString('utf-8');
       }
-  
+
       const tokenMetadata = JSON.parse(jsonString);
-  
+
       // Decrypt the URL
       const encryptionKey = process.env.ENCRYPTION_KEY; // Replace with your encryption key
       const decryptedURL = CryptoJS.AES.decrypt(tokenMetadata.encryptedURL, encryptionKey).toString(CryptoJS.enc.Utf8);
-  
+
       // Initiate the file download
       const link = document.createElement('a');
       link.href = decryptedURL;
@@ -121,28 +170,29 @@ const MyTokens = () => {
     } catch (error) {
       console.error('Error downloading the file:', error);
     }
+>>>>>>> b3540697e54771f9f5ad10303d86e2879f931420
   };
 
   return (
     <div className="grid gap-10">
       <div className="items-start justify-between md:flex">
         <div className="max-w-lg">
-          <h3 className="text-gray-800 text-xl font-bold sm:text-2xl">
+          <h3 className="text-xl font-bold text-gray-800 sm:text-2xl">
             Owned Tokens
           </h3>
         </div>
         <div className="mt-3 md:mt-0">
           <Link
             href="/marketplace/upload"
-            className="inline-block px-4 py-2 text-white duration-150 font-medium bg-orange-600 rounded-lg hover:bg-orange-500 active:bg-orange-700 md:text-sm"
+            className="inline-block px-4 py-2 font-medium text-white duration-150 bg-orange-600 rounded-lg hover:bg-orange-500 active:bg-orange-700 md:text-sm"
           >
             Upload file
           </Link>
         </div>
       </div>
       <div className="mt-12 relative h-max overflow-auto min-h-[50vh]">
-        <table className="w-full table-auto text-sm text-left">
-          <thead className="text-gray-600 font-medium border-b">
+        <table className="w-full text-sm text-left table-auto">
+          <thead className="font-medium text-gray-600 border-b">
             <tr>
               <th className="py-3 pr-6">Token ID</th>
               <th className="py-3 pr-6">File Name</th>
@@ -156,21 +206,21 @@ const MyTokens = () => {
             {
               ownedTokens.map((item, idx) => (
                 <tr key={idx}>
-                  <td className="pr-6 py-4 whitespace-nowrap">{item.tokenID}</td>
-                  <td className="pr-6 py-4 whitespace-nowrap">{item.fileName}</td>
-                  <td className="pr-6 py-4 whitespace-nowrap">{item.size}KB</td>
-                  <td className="pr-6 py-4 whitespace-nowrap">
+                  <td className="py-4 pr-6 whitespace-nowrap">{item.tokenID}</td>
+                  <td className="py-4 pr-6 whitespace-nowrap">{item.fileName}</td>
+                  <td className="py-4 pr-6 whitespace-nowrap">{item.size}KB</td>
+                  <td className="py-4 pr-6 whitespace-nowrap">
                     <span className={`px-3 py-2 rounded-full font-semibold text-xs ${item.status == "Active" ? "text-green-600 bg-green-50" : "text-blue-600 bg-blue-50"}`}>
                       {item.FileId}
                     </span>
                   </td>
 
-                  <td className="pr-6 py-4 whitespace-nowrap">{item.price}$APE</td>
-                  <td className="pr-6 py-4 whitespace-nowrap">{item.uploader}</td>
+                  <td className="py-4 pr-6 whitespace-nowrap">{item.price}$APE</td>
+                  <td className="py-4 pr-6 whitespace-nowrap">{item.uploader}</td>
                   <td className="text-right whitespace-nowrap">
-                  <button onClick={() => handleDownload(item.fileId)} className="py-1.5 px-3 text-gray-600 hover:text-gray-500 duration-150 hover:bg-gray-50 border rounded-lg">
-                  Download
-                  </button>
+                    <button onClick={() => handleDownload(item.fileId)} className="py-1.5 px-3 text-gray-600 hover:text-gray-500 duration-150 hover:bg-gray-50 border rounded-lg">
+                      Download
+                    </button>
                   </td>
                 </tr>
               ))
@@ -178,16 +228,16 @@ const MyTokens = () => {
           </tbody>
         </table>
       </div>
-      <div className="items-start justify-between md:flex mt-10 ">
+      <div className="items-start justify-between mt-10 md:flex ">
         <div className="max-w-lg">
-          <h3 className="text-gray-800 text-xl font-bold sm:text-2xl">
+          <h3 className="text-xl font-bold text-gray-800 sm:text-2xl">
             Created Tokens
           </h3>
         </div>
       </div>
       <div className="mt-12 relative h-max overflow-auto min-h-[50vh]">
-        <table className="w-full table-auto text-sm text-left">
-          <thead className="text-gray-600 font-medium border-b">
+        <table className="w-full text-sm text-left table-auto">
+          <thead className="font-medium text-gray-600 border-b">
             <tr>
               <th className="py-3 pr-6">Token ID</th>
               <th className="py-3 pr-6">File Name</th>
@@ -201,17 +251,17 @@ const MyTokens = () => {
             {
               createdTokens.map((item, idx) => (
                 <tr key={idx}>
-                  <td className="pr-6 py-4 whitespace-nowrap">{item.tokenID}</td>
-                  <td className="pr-6 py-4 whitespace-nowrap">{item.fileName}</td>
-                  <td className="pr-6 py-4 whitespace-nowrap">{item.size}KB</td>
-                  <td className="pr-6 py-4 whitespace-nowrap">
+                  <td className="py-4 pr-6 whitespace-nowrap">{item.tokenID}</td>
+                  <td className="py-4 pr-6 whitespace-nowrap">{item.fileName}</td>
+                  <td className="py-4 pr-6 whitespace-nowrap">{item.size}KB</td>
+                  <td className="py-4 pr-6 whitespace-nowrap">
                     <span className={`px-3 py-2 rounded-full font-semibold text-xs ${item.status == "Active" ? "text-green-600 bg-green-50" : "text-blue-600 bg-blue-50"}`}>
                       {item.FileId}
                     </span>
                   </td>
 
-                  <td className="pr-6 py-4 whitespace-nowrap">{item.price}$APE</td>
-                  <td className="pr-6 py-4 whitespace-nowrap">{item.uploader}</td>
+                  <td className="py-4 pr-6 whitespace-nowrap">{item.price}$APE</td>
+                  <td className="py-4 pr-6 whitespace-nowrap">{item.uploader}</td>
                   <td className="text-right whitespace-nowrap">
                     <button onClick={handleDownload(item.fileId)} className="py-1.5 px-3 text-gray-600 hover:text-gray-500 duration-150 hover:bg-gray-50 border rounded-lg">
                       Download
