@@ -28,10 +28,17 @@ FileBlox introduces a decentralized marketplace for encrypted NFTs, addressing t
 The process of using FileBlox is simple and secure:
 
 1. Content creators upload their files, including the file properties such as name, price, and description, along with a cover image that serves as the image placeholder for the encrypted NFT in the marketplace.
+![fileblox upload](https://github.com/raldblox/fileblox/assets/101350894/279cae4c-f208-4f15-8e4d-d8d3f8bbe53f)
 
-2. The backend of FileBlox automatically uploads the file to IPFS (InterPlanetary File System), encrypts its location, and returns a hash that is minted as a property of the NFT.
+3. The backend of FileBlox automatically uploads the file to IPFS (InterPlanetary File System), encrypts its location, and returns a hash that is minted as a property of the NFT.
+4. The recorded encrypted file is then listed in the FileBlox marketplace for minting by anyone who wanted to get access to the file.
+![fileblox mint](https://github.com/raldblox/fileblox/assets/101350894/9a5f8919-fe23-4829-80ec-cf3d7520fc51)
 
-3. When a user purchases the NFT, they can view it on their user dashboard. Clicking the download button triggers FileBlox to check if the user owns the NFT containing the hash. If authorized, the file is decrypted, and the user is provided with the location to access the file.
+
+5. When a user purchases the NFT, they can view it on their user dashboard. Clicking the download button triggers FileBlox to check if the user owns the NFT containing the hash. If authorized, the file is decrypted, and the user is provided with the location to access the file.
+![fileblox dashboard](https://github.com/raldblox/fileblox/assets/101350894/04a43763-606e-493d-8b1b-0bf6ee5ca3b9)
+![Screenshot (387)](https://github.com/raldblox/fileblox/assets/101350894/00ad83b3-f168-4328-8707-e7ec9fc6d93a)
+
 
 This process ensures that exclusive content remains protected and accessible only to those who have legitimately purchased the NFTs, safeguarding the value and exclusivity of the digital creations.
 
