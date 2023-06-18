@@ -28,8 +28,7 @@ FileBlox introduces a decentralized marketplace for encrypted NFTs, addressing t
 The process of using FileBlox is simple and secure:
 
 1. Content creators upload their files, including the file properties such as name, price, and description, along with a cover image that serves as the image placeholder for the encrypted NFT in the marketplace.
-   
-![Screenshot (378)](https://github.com/raldblox/fileblox/assets/101350894/0cc0d26e-7cbb-4fed-b6cf-c5eae6a41b48)
+
 
 3. The backend of FileBlox automatically uploads the file to IPFS (InterPlanetary File System), encrypts its location, and returns a hash that is minted as a property of the NFT.
 4. The recorded encrypted file is then listed in the FileBlox marketplace for minting by anyone who wanted to get access to the file.
