@@ -82,6 +82,6 @@ FileBlox is an ongoing project, and there are several areas of improvement and f
 
 By leveraging the existing technologies, strategic partnerships, and constant innovation, FileBlox aims to provide digital creators and users worldwide with a seamless, secure, and decentralized storage and marketplace experience.
 
-***
+***email us @ fileblox.ph@gmail.com
 
 We welcome contributions, feedback, and collaborations from the community to make FileBlox an even more robust and impactful solution for digital creators in the NFT space.
